@@ -7,7 +7,6 @@ Decentralized version of coinmarketcap.com. All data stored only on Bluzelle. En
 A cron job or recurring process running on some server, that needs to pull order book data from CoinGecko.com's API (feel free to use some other service if you prefer). Use the free API, that allows access to read the currency pairs. Store this data directly to the edge on Bluzelle DB. 
 
 CoinGecko: https://www.coingecko.com/en/api
-
 Example: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd
 
 Whenever a new bunch of currency pair updates come in, update these all to Bluzelle immediately. We would like this to update to Bluzelle as frequently as possible, in terms of how frequently the order book API allows and is possible, with the goal to also demonstrate and prove out Bluzelle's ability to handle heavy batch updates in short timespans.
@@ -15,6 +14,11 @@ Whenever a new bunch of currency pair updates come in, update these all to Bluze
 **Part 2**. 
 
 Web app (much like CoinMarketCap.com) pulls this data directly from Bluzelle using the Bluzelle JS libraries. The web app itself is simply static JS + HTML5 that can be hosted on S3 (or elsewhere). 
+
+**Important Bluzelle documentation links**:
+
+https://docs.bluzelle.com/developers/
+https://docs.bluzelle.com/bluzelle-js/
 
 **Important points**:
 
