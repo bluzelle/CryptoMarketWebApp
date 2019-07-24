@@ -23,6 +23,7 @@ Web app (much like CoinMarketCap.com) pulls this data directly from Bluzelle usi
 **Important points**:
 
 - Your submission will be a pull request.
+- Your submission WILL be judged significantly based on how well you use Bluzelle DB. It is a key value store, so please use it effectively using whatever best practices make sense including proper data normalization/de-normalization.
 - Update the README to reflect your submission including description, notes, and other pertinent details.
 - You can participate in any of Bluzelle bounty, or even multiple ones, as you desire. You can be an individual or a team -- it is upto you. 
 - The code you submit will be under the MIT license, with you being credited as the author. When you submit this code, you agree to give all publishing and intellectual rights of the video freely over to community via the terms of the MIT license.
