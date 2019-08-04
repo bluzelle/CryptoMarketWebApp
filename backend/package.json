@@ -1,11 +1,10 @@
 {
   "name": "cryptomarketwebapp",
   "version": "1.0.0",
-  "description": "**Bounty Description**:",
+  "description": "Fetch data from coingecko and save to bluzelle",
   "main": "index.js",
   "scripts": {
-    "start_data_fetch": "node backend/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
