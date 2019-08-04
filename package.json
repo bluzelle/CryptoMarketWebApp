@@ -1,0 +1,20 @@
+{
+  "name": "cryptomarketwebapp",
+  "version": "1.0.0",
+  "description": "**Bounty Description**:",
+  "main": "index.js",
+  "scripts": {
+    "start_data_fetch": "node backend/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:WillXing/CryptoMarketWebApp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluzelle": "^0.6.530",
+    "phin": "^3.4.0"
+  }
+}
