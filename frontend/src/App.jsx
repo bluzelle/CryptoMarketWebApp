@@ -44,9 +44,8 @@ const App = () => {
       bz.current =
         bz.current ||
         (await bluzelle({
-          public_pem:
-            'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEe6YKttmeSYmGA98SFp7pXfgNu1upuLkpkt0Eig1Qx9aoZIJMbY/TZDkuhbRmH11sZzsZfozDrqSu23Gl9jSiiA==',
-          private_pem: ''
+          public_pem: '[PLACE_HOLDER_FOR_PUB_KEY]',
+          private_pem: '[PLACE_HOLDER_FOR_PRI_KEY]'
         }));
 
       if (!totalCoinsCount.current) {
