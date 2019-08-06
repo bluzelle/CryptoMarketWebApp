@@ -31,6 +31,7 @@ const appStyles = makeStyles(theme => ({
 
 const App = () => {
   const classes = appStyles();
+  const pageSize = 250;
   const bz = useRef(null);
   const totalCoinsCount = useRef(0);
   const [pageIndex, setPageIndex] = useState(0);
@@ -44,7 +45,7 @@ const App = () => {
         bz.current ||
         (await bluzelle({
           public_pem:
-            'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEYCOXjHoBZT25L1GDGHZQ2FtHv/xonzyQvPwV9NUdyCtKImkQXCyG6E1HX/TGV0X9ZNc5L475QsdxYGgjQBUPuQ==',
+            'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEe6YKttmeSYmGA98SFp7pXfgNu1upuLkpkt0Eig1Qx9aoZIJMbY/TZDkuhbRmH11sZzsZfozDrqSu23Gl9jSiiA==',
           private_pem: ''
         }));
 
@@ -73,8 +74,8 @@ const App = () => {
       <Paper className={classes.table}>
         <TablePagination
           component="div"
-          rowsPerPageOptions={[250]}
-          rowsPerPage={250}
+          rowsPerPageOptions={[pageSize]}
+          rowsPerPage={pageSize}
           count={totalCoinsCount.current}
           page={pageIndex}
           backIconButtonProps={{
@@ -94,7 +95,11 @@ const App = () => {
                 <TableCell>Name</TableCell>
                 <TableCell>Market Cap</TableCell>
                 <TableCell>Price</TableCell>
-                <TableCell>Change(24h)</TableCell>
+                <TableCell>Volume</TableCell>
+                <TableCell>Circulating Supply</TableCell>
+                <TableCell>Market Cap Change(24h)</TableCell>
+                <TableCell>Price Change(24h)</TableCell>
+                <TableCell>Price Trend(7d)</TableCell>
               </TableRow>
             </TableHead>
             <TableContent data={coinDataForCurrentPage} />

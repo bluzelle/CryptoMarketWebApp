@@ -1,15 +1,13 @@
 const phin = require('phin');
 const retry = require('async-retry');
 const { bluzelle } = require('bluzelle');
-const { BLUZELLE_ERROR_MSG } = require('./constants');
+const { BLUZELLE_ERROR_MSG, PAGE_SIZE } = require('./constants');
 
 const phinGet = phin.defaults({
   method: 'GET',
   parse: 'json',
   timeout: 2000
 });
-
-const pageSize = 250;
 
 let bz;
 
@@ -19,9 +17,8 @@ const bluzelleApi = {
       bz ||
       (await bluzelle({
         public_pem:
-          'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEYCOXjHoBZT25L1GDGHZQ2FtHv/xonzyQvPwV9NUdyCtKImkQXCyG6E1HX/TGV0X9ZNc5L475QsdxYGgjQBUPuQ==',
-        private_pem:
-          'MHQCAQEEIEbjGWLVopU4v3P1FZOr+VBxXFvXyCO2Y35oXR7APQHGoAcGBSuBBAAKoUQDQgAEYCOXjHoBZT25L1GDGHZQ2FtHv/xonzyQvPwV9NUdyCtKImkQXCyG6E1HX/TGV0X9ZNc5L475QsdxYGgjQBUPuQ=='
+          'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEe6YKttmeSYmGA98SFp7pXfgNu1upuLkpkt0Eig1Qx9aoZIJMbY/TZDkuhbRmH11sZzsZfozDrqSu23Gl9jSiiA==',
+        private_pem: ''
       }));
     return await retry(
       async () => {
@@ -44,11 +41,11 @@ const bluzelleApi = {
 };
 
 const coingeckoApi = {
-  getTotalPageNum: async () =>
+  getTotalCoinsCount: async () =>
     await retry(
       async () => {
         const result = await phinGet('https://api.coingecko.com/api/v3/global');
-        return Math.ceil(result.body.data.active_cryptocurrencies / pageSize);
+        return result.body.data.active_cryptocurrencies;
       },
       {
         retries: 3
@@ -58,7 +55,7 @@ const coingeckoApi = {
     (await retry(
       async () => {
         const result = await phinGet(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${pageSize}&page=${pageIndex}&sparkline=false`
+          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${PAGE_SIZE}&page=${pageIndex}&sparkline=true`
         );
         return result;
       },
@@ -69,10 +66,14 @@ const coingeckoApi = {
       id: coin.id,
       name: coin.name,
       image: coin.image,
-      current_price: coin.current_price,
-      market_cap: coin.market_cap,
-      price_change_percentage_24h: coin.price_change_percentage_24h,
-      market_cap_change_percentage_24h: coin.market_cap_change_percentage_24h
+      symbol: coin.symbol,
+      totalVolume: coin.total_volume,
+      currentPrice: coin.current_price,
+      marketCap: coin.market_cap,
+      priceChangePercentage24h: coin.price_change_percentage_24h,
+      marketCapChangePercentage24h: coin.market_cap_change_percentage_24h,
+      circulatingSupply: coin.circulating_supply,
+      priceSparkLine7d: coin.sparkline_in_7d.price.filter((price, index) => index % 24 === 0)
     }))
 };
 

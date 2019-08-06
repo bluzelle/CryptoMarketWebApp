@@ -2,13 +2,7 @@ import React from 'react';
 import Numeral from 'numeraljs';
 import PropTypes from 'prop-types';
 import { TableRow, TableCell, TableBody, Avatar, makeStyles } from '@material-ui/core';
-// current_price: 11613
-// id: "bitcoin"
-// image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
-// market_cap: 207406502749
-// market_cap_change_percentage_24h: 8.51545
-// name: "Bitcoin"
-// price_change_percentage_24h: 8.51564
+import { Sparklines, SparklinesLine } from 'react-sparklines';
 
 const tableContentStyles = makeStyles(theme => ({
   avatar: {
@@ -16,7 +10,7 @@ const tableContentStyles = makeStyles(theme => ({
     width: 30,
     height: 30
   },
-  nameCell: {
+  cell: {
     display: 'flex',
     alignItems: 'center'
   },
@@ -34,24 +28,42 @@ const TableContent = ({ data }) => {
     <TableBody>
       {data.map(coin => (
         <TableRow key={coin.id}>
-          <TableCell className={classes.nameCell}>
-            {Boolean(coin.image) ? (
-              <Avatar className={classes.avatar} component={'span'} src={coin.image} />
-            ) : (
-              <Avatar className={classes.avatar} component={'span'}>
-                {coin.name[0].toUpperCase()}
-              </Avatar>
-            )}
-            {coin.name}
+          <TableCell>
+            <span className={classes.cell}>
+              {Boolean(coin.image) ? (
+                <Avatar className={classes.avatar} component={'span'} src={coin.image} />
+              ) : (
+                <Avatar className={classes.avatar} component={'span'}>
+                  {coin.name[0].toUpperCase()}
+                </Avatar>
+              )}
+              {coin.name}
+            </span>
           </TableCell>
-          <TableCell>{Numeral(coin.market_cap).format('$ 0,0[.]00')}</TableCell>
-          <TableCell>{Numeral(coin.current_price).format('$ 0,0[.]00')}</TableCell>
+          <TableCell>{Numeral(coin.marketCap).format('$ 0,0[.]00')}</TableCell>
+          <TableCell>{Numeral(coin.currentPrice).format('$ 0,0.00')}</TableCell>
+          <TableCell>{Numeral(coin.totalVolume).format('$ 0,0.00')}</TableCell>
+          <TableCell>
+            {Numeral(coin.circulatingSupply).format('0,0.00')} {coin.symbol.toUpperCase()}
+          </TableCell>
           <TableCell
             className={
-              coin.price_change_percentage_24h > 0 ? classes.priceRising : classes.priceDropping
+              coin.marketCapChangePercentage24h > 0 ? classes.priceRising : classes.priceDropping
             }
           >
-            {Numeral(coin.price_change_percentage_24h / 100).format('0.000%')}
+            {Numeral(coin.marketCapChangePercentage24h / 100).format('0.000%')}
+          </TableCell>
+          <TableCell
+            className={
+              coin.priceChangePercentage24h > 0 ? classes.priceRising : classes.priceDropping
+            }
+          >
+            {Numeral(coin.priceChangePercentage24h / 100).format('0.000%')}
+          </TableCell>
+          <TableCell>
+            <Sparklines data={coin.priceSparkLine7d}>
+              <SparklinesLine style={{ fill: 'none' }} />
+            </Sparklines>
           </TableCell>
         </TableRow>
       ))}
@@ -62,13 +74,17 @@ const TableContent = ({ data }) => {
 TableContent.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
-      name: PropTypes.string,
       id: PropTypes.string,
+      name: PropTypes.string,
+      symbol: PropTypes.string,
       image: PropTypes.string,
-      market_cap: PropTypes.number,
-      market_cap_change_percentage_24h: PropTypes.number,
-      current_price: PropTypes.number,
-      price_change_percentage_24h: PropTypes.number
+      totalVolume: PropTypes.number,
+      marketCap: PropTypes.number,
+      marketCapChangePercentage24h: PropTypes.number,
+      currentPrice: PropTypes.number,
+      priceChangePercentage24h: PropTypes.number,
+      circulatingSupply: PropTypes.number,
+      priceSparkLine7d: PropTypes.arrayOf(PropTypes.number)
     })
   ).isRequired
 };
