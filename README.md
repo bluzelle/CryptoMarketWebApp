@@ -1,39 +1,40 @@
-**Bounty Description**:
+# CryptoMarketWebApp with Bluzelle
 
-Decentralized version of coinmarketcap.com. All data stored only on Bluzelle. End product should be similar to **CoinMarketCap.com**.
+### **Description**
 
-**Part 1**. 
+This is a crypto market web app build with [Bluzelle](https://bluzelle.com/)
 
-A cron job or recurring process running on some server, that needs to pull order book data from CoinGecko.com's API (feel free to use some other service if you prefer). Use the free API, that allows access to read the currency pairs. Store this data directly to the edge on Bluzelle DB. 
+### **1. Backend**
 
-- CoinGecko: https://www.coingecko.com/en/api
-- Example: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd
+This part is using `pm2` and `node-cron` to running the fetching script, data are fetched from CoinGecko.com's API.
 
-Whenever a new bunch of currency pair updates come in, update these all to Bluzelle immediately. We would like this to update to Bluzelle as frequently as possible, in terms of how frequently the order book API allows and is possible, with the goal to also demonstrate and prove out Bluzelle's ability to handle heavy batch updates in short timespans.
+When environment variable `PROD` set to `true`, The cron schedule is set to runing `at every 5th minute`, but you can change it by set the environment variable `CRON_SCHEDULE`.
 
-**Part 2**. 
+### **2. Frontend**
 
-Web app (much like CoinMarketCap.com) pulls this data directly from Bluzelle using the Bluzelle JS libraries. The web app itself is simply static JS + HTML5 that can be hosted on S3 (or elsewhere). 
+This part is build with ReactJS, just simple material designed table, it's getting data from [Bluzelle](https://bluzelle.com/) and then populate it.
 
-**Important Bluzelle documentation links**:
+You can easily run it by `npm start`
 
-- https://docs.bluzelle.com/developers/
-- https://docs.bluzelle.com/bluzelle-js/
+### **Bluzelle key setting**
 
-**Important points**:
+So before you run backend or frontend, you need to set the key first. Follow the [tutorial here](https://docs.bluzelle.com/bluzelle-js/quickstart) to get your bluzelle setup.
 
-- Your submission will be a pull request.
-- Your submission WILL be judged significantly based on how well you use Bluzelle DB. It is a key value store, so please use it effectively using whatever best practices make sense including proper data normalization/de-normalization.
-- Update the README to reflect your submission including description, notes, and other pertinent details.
-- You can participate in any of Bluzelle bounty, or even multiple ones, as you desire. You can be an individual or a team -- it is upto you. 
-- The code you submit will be under the MIT license, with you being credited as the author. When you submit this code, you agree to give all publishing and intellectual rights of the video freely over to community via the terms of the MIT license.
-- Ensure the code is written by you or your team. It is imperative that you own the rights to the code and are writing code that an be fully licensed under MIT.
-- Please submit your code to Github with the proper MIT license file included in it, to be considered. If your submission includes a front end and back end, put these into separate FOLDERS and include them both in the same pull request with your submission.
-- Be sure your submission is in a ready and demo-able state. We will not evaluate incomplete projects nor will code alone be an acceptable submission. Include all necessary details so we can try out your app.
-- Record a screencast showing us how your submission works. Include a link to your video in the README.
-- You should use the Bluzelle 0.6 (or later) testnet. The testnet reflects the most recent stable build of Bluzelle, and the latest testnet is running the MEIER release.
-- The Bluzelle team will be solely responsible for choosing the winners, and if warranted, multiple winners are possible for each bounty. 
-- The Bluzelle team will make the final decision, and reserves the right to not award a bounty for a challenge if no acceptable submissions are made. 
-- Include your Ethereum address with your submission, in case you win the bounty
-- Once you have made your pull request, send an email about your project to neeraj@bluzelle.com. Include information on the link to your pull request.
-- If you have questions, please email neeraj@bluzelle.com.
+Then there are two place you need to put your keys
+
+1. `backend/api.js`
+2. `frontend/App.jsx`
+
+Search for `bluzelle` in the code, you will see the place to put the key.
+
+### **Live Demo**
+
+The live demo here is fetching data at every 5th minute, and the website is static hosting with s3.
+
+### [Demo](http://crypto-market-web-app.s3-website-ap-southeast-2.amazonaws.com)
+
+### **Screen record demo**
+
+### [Video](http://youtu.be/hhTt3DhvsB8?hd=1)
+
+**My Ethereum address**: 0x642Bf2b93DCab8e3FDbF9bFE2382a968F4a1785c

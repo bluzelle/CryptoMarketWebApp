@@ -31,9 +31,10 @@ const main = async () => {
 };
 
 const isProd = process.env.PROD || false;
+const cronSchedule = process.env.CRON_SCHEDULE || '*/5 * * * *';
 
 if (isProd) {
-  cron.schedule('5 * * * *', () => {
+  cron.schedule(cronSchedule, () => {
     console.time('time cost');
     console.log(`[${new Date().toString()}] data fetching start:`);
     main()
