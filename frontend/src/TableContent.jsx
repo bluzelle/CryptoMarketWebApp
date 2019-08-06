@@ -41,7 +41,11 @@ const TableContent = ({ data }) => {
             </span>
           </TableCell>
           <TableCell>{Numeral(coin.marketCap).format('$ 0,0[.]00')}</TableCell>
-          <TableCell>{Numeral(coin.currentPrice).format('$ 0,0.00')}</TableCell>
+          <TableCell>
+            {coin.currentPrice > 1
+              ? Numeral(coin.currentPrice).format('$ 0,0.00')
+              : Numeral(coin.currentPrice).format('$ 0.00000')}
+          </TableCell>
           <TableCell>{Numeral(coin.totalVolume).format('$ 0,0.00')}</TableCell>
           <TableCell>
             {Numeral(coin.circulatingSupply).format('0,0.00')} {coin.symbol.toUpperCase()}

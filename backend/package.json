@@ -4,7 +4,8 @@
   "description": "Fetch data from coingecko and save to bluzelle",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start-prod": "PROD=true pm2 start index.js"
   },
   "repository": {
     "type": "git",
@@ -15,7 +16,9 @@
   "dependencies": {
     "async-retry": "^1.2.3",
     "bluzelle": "^0.6.530",
-    "phin": "^3.4.0"
+    "node-cron": "^2.0.3",
+    "phin": "^3.4.0",
+    "pm2": "^3.5.1"
   },
   "devDependencies": {
     "eslint": "5.3.0",

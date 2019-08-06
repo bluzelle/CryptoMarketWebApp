@@ -56,7 +56,6 @@ const App = () => {
       }
       const coinDataPerPage = await bz.current.quickread(`coin-stats-page-${pageIndex + 1}`);
       setCoinDataForCurrentPage(JSON.parse(coinDataPerPage));
-      console.log(JSON.parse(coinDataPerPage));
       setIsLoading(false);
     };
     fetchCoinDataFromBluzellePerPage();

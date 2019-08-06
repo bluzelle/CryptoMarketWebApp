@@ -1,3 +1,5 @@
+var cron = require('node-cron');
+
 const { bluzelleApi, coingeckoApi } = require('./api');
 const { PAGE_SIZE } = require('./constants');
 
@@ -10,9 +12,6 @@ const saveTotalCoinsCount = async totalCoinsCount => {
 };
 
 const main = async () => {
-  console.time('time cost');
-  console.log('data fetching start:');
-
   const totalCoinsCount = await coingeckoApi.getTotalCoinsCount();
   const totalPagesNum = Math.ceil(totalCoinsCount / PAGE_SIZE);
 
@@ -29,11 +28,25 @@ const main = async () => {
     }
   }
   await saveTotalCoinsCount(totalCoinsCount);
-
-  console.log(`data fetching done.`);
-  console.timeEnd('time cost');
 };
 
-main()
-  .catch(e => console.error(e.message))
-  .finally(() => bluzelleApi.close());
+const isProd = process.env.PROD || false;
+
+if (isProd) {
+  cron.schedule('5 * * * *', () => {
+    console.time('time cost');
+    console.log(`[${new Date().toString()}] data fetching start:`);
+    main()
+      .catch(e => console.error(e.message))
+      .finally(() => {
+        console.log(`data fetching done.`);
+        console.timeEnd('time cost');
+      });
+  });
+} else {
+  main()
+    .catch(e => console.error(e.message))
+    .finally(() => {
+      bluzelleApi.close();
+    });
+}
