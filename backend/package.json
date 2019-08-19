@@ -1,0 +1,33 @@
+{
+  "name": "cryptomarketwebapp",
+  "version": "1.0.0",
+  "description": "Fetch data from coingecko and save to bluzelle",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start-prod": "PROD=true pm2 start index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:WillXing/CryptoMarketWebApp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async-retry": "^1.2.3",
+    "bluzelle": "^0.6.530",
+    "node-cron": "^2.0.3",
+    "phin": "^3.4.0",
+    "pm2": "^3.5.1"
+  },
+  "devDependencies": {
+    "eslint": "5.3.0",
+    "eslint-config-airbnb": "17.1.1",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-react": "^7.14.2",
+    "prettier": "^1.18.2"
+  }
+}
