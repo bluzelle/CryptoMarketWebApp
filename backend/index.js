@@ -31,7 +31,7 @@ const main = async () => {
 };
 
 const isProd = process.env.PROD || false;
-const cronSchedule = process.env.CRON_SCHEDULE || '*/5 * * * *';
+const cronSchedule = process.env.CRON_SCHEDULE || '*/15 * * * *';
 
 if (isProd) {
   cron.schedule(cronSchedule, () => {
