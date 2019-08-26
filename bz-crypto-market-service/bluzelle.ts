@@ -9,7 +9,7 @@ export class BluzelleWriter {
     }
 
     async init() {
-        var keys = await loadJsonFile(__dirname + '\\keys.json'); 
+        var keys = await loadJsonFile(__dirname + '/keys.json'); 
 
         this.bz = await bluzelle({
             private_pem: keys.private_pem

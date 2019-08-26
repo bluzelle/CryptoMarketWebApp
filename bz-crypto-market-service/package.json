@@ -4,9 +4,9 @@
   "description": "Bluzelle Cryptocurrency Market Service",
   "main": "index.js",
   "scripts": {
-    "start": "node -r ts-node/register .\\dist\\index.js",
+    "start": "node -r ts-node/register ./dist/index.js",
     "build": "npm run tsc && npm run copyconf_js",
-    "copyconf_js": "cpx .\\keys.json .\\dist",
+    "copyconf_js": "cpx ./keys.json ./dist",
     "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

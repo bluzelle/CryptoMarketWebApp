@@ -1,12 +1,12 @@
 
-**Description**:
+# Description
 
-Decentralized version of coinmarketcap.com. All data stored only on Bluzelle. End product should be similar to **CoinMarketCap.com**.
+Decentralized version of coinmarketcap.com. All data stored only on Bluzelle. End product similar to **CoinMarketCap.com**.
 
-**Requirements**
+## Requirements
 Node.js v10.16.* (tested on v10.16.3)
 
-**Part 1 - node.js service**
+## Part 1 - node.js service
 
 Service is located inside the "bz-crypto-market-service" folder. Installation and configuration steps:
 
@@ -36,9 +36,9 @@ Coin data will include:
 
 Additionally, Binance ticker was implemented with higher frequency and will be selected by default as shown in the picture:
 
+![Tickers](https://i.imgur.com/wV2CTFQ.jpg "Tickers")
 
-
-**Part 2 - application frontend**
+### Part 2 - application frontend
 Frontend is located inside "bz-crypto-market-webapp" folder. It was developed using Angular 8. First make sure you have configured the bluzelle service by editing file "src/bluzelle.service.ts".
 In order to simplify the tests, the following default data is provided to be able to read the already running service:
 
@@ -55,8 +55,9 @@ And finally serve it:
 
     ng serve --open
 
-**TODO**
-+ Add license
-+ Add video
-+ Add ETH Address
+### Sample video
+https://www.youtube.com/watch?v=gci1SxDVxoM
 
+
+##### ETH Address
+0xAAEBFcC2927beF1ecb4ed83519D23A30681c67DF
