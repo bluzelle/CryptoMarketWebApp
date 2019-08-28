@@ -1,0 +1,42 @@
+<div *ngIf="bzStatus == bzStatusEnum.Ready" class="alert alert-primary" role="alert">
+    Market Cap: {{ (allcoins | async) | marketCap | number: '2.0-2' }} $ BTC Dominance: {{ (allcoins | async) | btcDominance | number: '2.0-2' }}%
+</div>
+<div *ngIf="bzStatus == bzStatusEnum.NotInitialized">
+  <div class="container">
+    <div class="alert alert-info" role="alert">
+      Initializing Bluzelle...
+    </div>
+  </div>
+</div>
+<div *ngIf="bzStatus == bzStatusEnum.Error">
+    <div class="container">
+      <div class="alert alert-danger" role="alert">
+        <strong>Error initializing Bluzelle</strong><br>
+        {{bzError}}
+      </div>
+    </div>
+</div>
+<div *ngIf="bzStatus == bzStatusEnum.Ready" class="container-fluid cryptocurrencies"> 
+    <button *ngIf="page > 1" type="button" (click)="prevPage()" class="btn btn-primary float-left">Prev</button>
+    <button *ngIf="document" type="button" (click)="nextPage()" class="btn btn-primary float-right">Next</button>
+    <table class="table">
+        <!-- <caption>List of users</caption> -->
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Source</th>
+            <th scope="col">Market Cap</th>
+            <th scope="col">Price</th>
+            <th scope="col">Circulating Supply</th>
+            <th scope="col">Change (24h)</th>
+            <th scope="col">Price Graph (7d)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- [@valueAnimation]="coin.coingeckoPrice.pcg" -->
+          <tr *ngFor="let coin of ((coins | async) | slice: (page - 1) * itemsPerPage : page * itemsPerPage ) trackBy: coinChangeTracker; let i = index;" app-coin-row [coin]="coin" [page]="page" [itemsPerPage]="itemsPerPage" [index]="i" class="align-items-center">
+          </tr>
+        </tbody>
+      </table>
+</div>

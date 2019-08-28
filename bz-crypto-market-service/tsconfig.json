@@ -1,0 +1,25 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "types": [ "node" ],
+    "lib": [
+      "es2017",
+      "dom"
+    ]
+  },
+  "typeRoots": [
+    "node_modules/@types"
+  ],
+  "include": ["*.ts"],
+  "exclude": [
+    "node_modules"
+  ]
+
+}

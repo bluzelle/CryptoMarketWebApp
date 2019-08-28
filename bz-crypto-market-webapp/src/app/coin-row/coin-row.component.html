@@ -1,0 +1,56 @@
+<!-- Alternative ticker -->
+<ng-template [ngIf]="selectedTicker.id > 1 && coin.alternativePrice['ticker-' + selectedTicker.id + '-prices']" [ngIfElse]="coingecko">
+    <th scope="row">
+        {{((page - 1) * itemsPerPage) + index + 1}}
+    </th>
+    <td>
+        <img [src]="coin.masterData.image" class="coin-img"> {{coin.masterData.name}}</td>
+    <td>
+        <img [src]="selectedTicker.img" class="coin-img">
+    </td>
+    <td [@valueAnimation]="coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].pt">
+        {{(coin.coingeckoPrice.cs * coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].pt) | number: '':'en-US'}}$
+    </td>
+    <td [@valueAnimation]="coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].pt"> 
+        {{coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].pt | number: '1.2-2':'en-US'}} <img src="https://assets.coingecko.com/coins/images/325/large/tether.png" class="coin-img">
+    </td>
+    <td>
+        {{coin.coingeckoPrice.cs | number: '':'en-US'}} {{coin.masterData.symbol | uppercase}}
+    </td>
+    <td [ngClass]="{'text-success': coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].change24 >= 0,'text-danger':coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].change24 < 0}">
+        {{coin.alternativePrice['ticker-' + selectedTicker.id + '-prices'].change24 | number: '1.0-2'}} %
+    </td>
+    <td>
+        <ngx-trend *ngIf="coin.sparkline" [data]="coin.sparkline.sparkline.price"
+            strokeWidth="4" [gradient]="['#FF0000', '#00FF00']"></ngx-trend>
+    </td>
+</ng-template>
+<!-- Gecko ticker -->
+<ng-template #coingecko>
+    <th scope="row">
+        {{((page - 1) * itemsPerPage) + index + 1}}
+    </th>
+    <td>
+        <img [src]="coin.masterData.image" class="coin-img"> {{coin.masterData.name}}
+    </td>
+    <td>
+        <img src="/assets/gecko256.png" class="coin-img">
+    </td>
+    <td>
+        {{(coin.coingeckoPrice.cs * coin.coingeckoPrice.pt) | number: '':'en-US'}}$
+    </td>
+    <td [@valueAnimation]="coin.coingeckoPrice.pt">
+        {{coin.coingeckoPrice.pt | number: '1.2-2':'en-US'}} $
+    </td>
+    <td>
+        {{coin.coingeckoPrice.cs | number: '':'en-US'}} {{coin.masterData.symbol | uppercase}}
+    </td>
+    <td [ngClass]="{'text-success':coin.coingeckoPrice.change24 >= 0,'text-danger':coin.coingeckoPrice.change24 < 0}">
+        {{coin.coingeckoPrice.change24 | number: '1.2-2':'en-US'}} %
+    </td>
+    <td>
+        <ngx-trend *ngIf="coin.sparkline" [data]="coin.sparkline.sparkline.price"
+        strokeWidth="4" [gradient]="['#FF0000', '#00FF00']"></ngx-trend>
+    </td>
+</ng-template>
+
