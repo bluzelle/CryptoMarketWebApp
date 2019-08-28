@@ -55,6 +55,9 @@ And finally serve it:
 
     ng serve --open
 
+### Hosted sample
+http://bz-market.s3-website.eu-central-1.amazonaws.com/
+
 ### Sample video
 https://www.youtube.com/watch?v=gci1SxDVxoM
 
