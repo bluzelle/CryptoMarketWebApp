@@ -1,0 +1,155 @@
+/*
+html5doctor.com Reset Stylesheet
+v1.6.1
+Last Updated: 2010-09-17
+Author: Richard Clark - http://richclarkdesign.com
+Twitter: @rich_clark
+*/
+html,
+body,
+div,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+img,
+small,
+strong,
+sub,
+sup,
+b,
+i,
+ol,
+ul,
+li,
+table,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+footer,
+header {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+body {
+  line-height: 1;
+}
+
+footer,
+header {
+  display: block;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+input,
+select {
+  vertical-align: middle;
+}
+
+
+
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2rem;
+  margin: 20px auto;
+}
+
+#coins-list-table,
+.buttons {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+#coins-list-table {
+  th {
+    font-weight: bold;
+  }
+
+  td {
+    line-height: 1.4;
+    height: 62px;
+
+    &.positive-change {
+      color: #009e73;
+    }
+    &.negative-change {
+      color: #d94040;
+    }
+  }
+
+  th,
+  td {
+    padding: 6px;
+    border-bottom: 1px solid #e1e5ea;
+    vertical-align: middle;
+  }
+
+  img {
+    vertical-align: middle
+  }
+
+  .sparkline {
+    max-width: 160px;
+    max-height: 50px;
+  }
+
+  .col-align-left {
+    text-align: left;
+  }
+
+  .col-align-center {
+    text-align: center;
+  }
+
+  .col-align-right {
+    text-align: right;
+  }
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 0px;
+
+  .currency-selector, .btn {
+    -webkit-appearance: none;
+    padding: 6px 12px;
+    background-color: #fff;
+    border-color: #e1e5ea;
+    color: #1070e0;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+  }
+
+  .currency-selector {
+    margin-right: 12px;
+  }
+
+  .hide-btn {
+    display: none;
+  }
+}
