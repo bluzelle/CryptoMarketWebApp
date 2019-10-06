@@ -18,4 +18,4 @@ functions:
     name: cma-list-update
     timeout: 600
     events:
-      - schedule: rate(30 minutes)
+      - schedule: cron(*/30 * * * ? *)
