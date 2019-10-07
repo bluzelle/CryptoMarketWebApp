@@ -59,14 +59,27 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
   style: 'decimal'
 });
 
-let page = 0;
-let currency;
-let currencySymbol = {
+// Match currency with its symbol
+const currencySymbol = {
   usd: '$',
   btc: 'BTC'
 }
+
+// Current page
+let page = 0;
+// Current currency
+let currency;
+// It's a view all?
 let viewAll = false;
 
+/**
+ * Loads the page from the given page and currency from Bluzelle DB
+ * Then retrieves all the coin info and, after receiving both, fill the row with info
+ *
+ * @param {object} rowsWrapper
+ * @param {number} selectedPage
+ * @param {string} selectedCurrency
+ */
 const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
   // Empty table
   TableHelper.emptyRows(rowsWrapper);
@@ -74,6 +87,7 @@ const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
   // Load coin list
   let coinListPage = await BluzelleHelper.read(blzClient, `coin-list:${selectedCurrency}:page:${selectedPage}`);
   coinListPage = JSON.parse(coinListPage);
+  // Create an object with index and page info
   coinListPage = coinListPage.map((coin, index) => ({
     coinId: coin,
     index: viewAll ? 100 * (selectedPage - 1) + index + 1 : index + 1,
@@ -84,15 +98,19 @@ const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
   // Adjust number of rows in table based on response
   TableHelper.adjustRows(rowsWrapper, coinListPage.length, viewAll);
 
+  // Handle UI adjustments based on page and results total
   if (selectedPage === 1) {
+    // Hide prev button if this is the first page
     document.querySelectorAll('.prev-page-btn').forEach((element) => {
       element.classList.add('hide-btn');
     });
   } else {
+    // Show prev button when page is the second or more
     document.querySelectorAll('.prev-page-btn').forEach((element) => {
       element.classList.remove('hide-btn');
     });
 
+    // Hide the next button at the end of the coins list
     if (coinListPage.length < 100) {
       document.querySelectorAll('.next-page-btn').forEach((element) => {
         element.classList.add('hide-btn');
@@ -159,15 +177,31 @@ const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
   }, { concurrency: concurrency });
 }
 
+/**
+ * Fill the given row with the data of a coin
+ *
+ * @param {object} row
+ * @param {object} genericInfo
+ * @param {object} marketInfo
+ * @param {string} currencySymbol
+ */
 const fillRow = (row, genericInfo, marketInfo, currencySymbol) => {
+  // Image and name
   row.children[1].innerHTML = `<img src="${genericInfo.image}" alt="${genericInfo.name}" width="16" height="16" class="coin-image"/> ${genericInfo.name}`;
+  // Market cap
   row.children[2].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.market_cap)}`;
+  // Current price
   row.children[3].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.current_price)}`;
+  // Total volume
   row.children[4].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.total_volume)}`;
+  // Circulating supply
   row.children[5].textContent = `${numberFormatter.format(genericInfo.circulating_supply)} ${genericInfo.symbol.toUpperCase()}`;
+  // 24h % change
   row.children[6].textContent = `${numberFormatter.format(marketInfo.price_change_percentage_24h.toFixed(2))}%`;
+  // Set green or red color to 24h change
   row.children[6].classList.add(marketInfo.price_change_percentage_24h >= 0 ? 'positive-change' : 'negative-change');
 
+  // Create the spark line graph
   const graphCanvas = document.createElement('canvas');
   graphCanvas.id = `sparkline-${genericInfo.id}`;
   graphCanvas.width = 166;
@@ -189,6 +223,10 @@ const fillRow = (row, genericInfo, marketInfo, currencySymbol) => {
   });
 }
 
+/**
+ * Tries a network optimization based on the rtt (which seems more reliable than downlink)
+ * Based on the rtt, set the concurrency accordingly
+ */
 const getConcurrencyForNetworkSpeed = () => {
   let concurrency;
   if (navigator && navigator.connection && navigator.connection.rtt) {
@@ -208,8 +246,19 @@ const getConcurrencyForNetworkSpeed = () => {
   return concurrency;
 }
 
+/* Methods to load pages */
+
+/**
+ * Handler to load the first page
+ *
+ * @param {object} rowsWrapper
+ * @param {number} currency
+ */
 const loadFirstPage = async(rowsWrapper, currency) => {
+  // Reset page
   page = 0;
+
+  // Hide and show pagination buttons for first page
   document.querySelectorAll('.paginate-btn, .prev-page-btn').forEach((element) => {
     element.classList.add('hide-btn');
   });
@@ -217,9 +266,16 @@ const loadFirstPage = async(rowsWrapper, currency) => {
     element.classList.remove('hide-btn');
   });
 
+  // Load page
   await nextPage(rowsWrapper, currency);
 }
 
+/**
+ * Handler to load previous page
+ *
+ * @param {object} rowsWrapper
+ * @param {number} currency
+ */
 const previousPage = async (rowsWrapper, currency) => {
   if (page >= 2) {
     page = page - 1;
@@ -228,15 +284,29 @@ const previousPage = async (rowsWrapper, currency) => {
   }
 }
 
+/**
+ * Handler to load next page
+ *
+ * @param {object} rowsWrapper
+ * @param {number} currency
+ */
 const nextPage = async (rowsWrapper, currency) => {
   page = page + 1;
   viewAll = false;
   await loadPage(rowsWrapper, page, currency);
 }
 
+/**
+ * Handler to start loading all pages
+ *
+ * @param {object} rowsWrapper
+ * @param {string} currency
+ */
 const loadAllPages = async (rowsWrapper, currency) => {
   viewAll = true;
   TableHelper.adjustRows(rowsWrapper, 0, viewAll);
+
+  // Hide and show pagination buttons for first page
   document.querySelectorAll('.paginate-btn').forEach((element) => {
     element.classList.remove('hide-btn');
   });
@@ -244,6 +314,8 @@ const loadAllPages = async (rowsWrapper, currency) => {
     element.classList.add('hide-btn');
   });
 
+  // Reset page and load pages
+  // If viewAll or currency are updated, this will stop loading further pages
   page = 0;
   try {
     while (result = await nextPage(rowsWrapper, currency), result.length === 100, viewAll, currency === currency) {
@@ -254,7 +326,9 @@ const loadAllPages = async (rowsWrapper, currency) => {
   }
 }
 
+// Handler fired at page load
 document.addEventListener('DOMContentLoaded', async () => {
+  // Get DOM elements
   const coinsTable = document.querySelector('#coins-list-table');
   const rowsWrapper = coinsTable.querySelector('tbody');
 
@@ -267,9 +341,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     if (error.toString().includes('legacy access request rate exceeded')) {
       alert('Bluzelle returned error: legacy access request rate exceeded. Please wait some seconds then reload the page.');
-    }
-    if (error.toString().includes('UUID')) {
-      alert('Bluzelle returned error: ', error);
+    } else if (error.toString().includes('UUID does not exist in the Bluzelle swarm')) {
+      alert('Bluzelle returned error: UUID does not exist in the Bluzelle swarm, but it should. Please recreate it with the given keys');
+    } else {
+      alert(error.toString());
     }
   }
 
@@ -298,6 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadFirstPage(rowsWrapper, currency);
     });
   });
+  // Bind currency select
   document.querySelectorAll('.currency-selector').forEach((element) => {
     element.addEventListener('change', async(event) => {
       currency = event.currentTarget.value;

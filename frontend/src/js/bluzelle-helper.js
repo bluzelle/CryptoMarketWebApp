@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * These are helpers methods to use Bluzelle DB
+ * It adds an init method, and a read method with retry support
+ */
+
 const pRetry = require('p-retry');
 
 const {
@@ -41,6 +46,8 @@ const read = async (client, key) => {
   return await pRetry(
     async () => {
       let response;
+      // Retry up to 5 times, to avoid network issues, and issues like "5000ms timeout"
+      // If the error is a RECORD_NOT_FOUND, stop retrying as this is not a recoverable issue
       try {
         response = await client.read(key);
         return response;
