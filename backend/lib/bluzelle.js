@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * These are helpers methods to use Bluzelle DB
+ * It adds an init method, and a most useful upsert method combaining update and create
+ */
+
 const pRetry = require('p-retry');
 
 const {
@@ -31,6 +36,11 @@ const init = async (publicKey, privateKey, options = { log: false }) => {
 /**
  * Upsert value into db
  *
+ * The methods first tries to update the value, and if RECORD_NOT_FOUND is returned,
+ * then it creates it
+ *
+ * To avoid connection uses, retry is supported with exponential backoff up 5 retries
+ *
  * @param {object} client
  * @param {string} key
  * @param {any} value
@@ -43,7 +53,7 @@ const upsert = async (client, key, value) => {
   return await pRetry(() => {
     return new Promise(async (resolve, reject) => {
       // Assuming that most of the times we will be updating a record (except for the first run ever),
-      // in this way we save ~50% of requests compared with the implementation below
+      // in this way we save ~50% of requests compared with the implementation commented below using has(key)
       try {
         await client.update(key, value);
         console.log(`[${key}] Correctly saved`);

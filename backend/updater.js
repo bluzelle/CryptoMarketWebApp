@@ -104,10 +104,15 @@ const saveMarketPage = async (coins, currency, page, bluzelleClient) => {
   return await bluzelleLib.upsert(bluzelleClient, `coin-list:${currency}:page:${page}`, createSummaryList(coins))
 }
 
+/**
+ * Save all coins, both generic info and market info
+ *
+ * @param {array} coins
+ * @param {string} currency
+ * @param {object} bluzelleClient
+ */
 const saveCoins = async (coins, currency, bluzelleClient) => {
   // Use a Promise.all with concurrency support.
-  // Bluzelle seems to be able to handle 50 concurrent requests without issues
-
   let saveCoin = [];
   coins.forEach((coin) => {
     saveCoin = [
