@@ -1,4 +1,18 @@
+'use strict';
 
+/**
+ * These are helpers methods to manage table rows
+ * It adds a method to adjust rows number and to empty them
+ */
+
+/**
+ * Manages the number for rows present in the table
+ * It adds or substracts them as needed (e.g. view all needs to add rows, going back to paginated needs to remove)
+ *
+ * @param {object} contentParent
+ * @param {number} totalNumberOfRows
+ * @param {boolean} viewAll
+ */
 const adjustRows = (contentParent, totalNumberOfRows, viewAll) => {
   const currentRows = contentParent.querySelectorAll('tr');
   let rowsToAdd = totalNumberOfRows;
@@ -87,6 +101,11 @@ const adjustRows = (contentParent, totalNumberOfRows, viewAll) => {
   }
 }
 
+/**
+ * Empties rows and clear css classes as needed
+ *
+ * @param {object} contentParent
+ */
 const emptyRows = (contentParent) => {
   contentParent.querySelectorAll('tr').forEach((row) => {
     Array.from(row.querySelectorAll('td'))
