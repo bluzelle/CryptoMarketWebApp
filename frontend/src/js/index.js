@@ -318,7 +318,7 @@ const loadAllPages = async (rowsWrapper, currency) => {
   // If viewAll or currency are updated, this will stop loading further pages
   page = 0;
   try {
-    while (result = await nextPage(rowsWrapper, currency), result.length === 100, viewAll, currency === currency) {
+    while (result = await nextPage(rowsWrapper, currency), result && result.length === 100, viewAll, currency === currency) {
       console.log('loading next page');
     }
   } catch (error) {
