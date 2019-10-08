@@ -41,7 +41,7 @@ module.exports = {
       template: path.resolve(__dirname, 'index.html'),
     })
   ],
-  entry: path.resolve(__dirname, 'src'),
+  entry: ['babel-polyfill', path.resolve(__dirname, 'src/js/index.js')],
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js'
