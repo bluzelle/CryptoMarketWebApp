@@ -15,12 +15,15 @@ Naming used for keys:
 - coin-list:${currency}:page:${page} => list page, i.e. coin-list:usd:page:1
 
 To deploy the project
-    npm install inside the backend directory
-    npx sls deploy`
+
+        npm install inside the backend directory
+        npx sls deploy
+    
 This will deploy the stack to the AWS account, with the lambda function scheduled to run every 30 minutes (at :00 and at :30).
 
 To manually run the lambda locally
-    npx sls invoke local -f updateList
+
+        npx sls invoke local -f updateList
 
 **Part 2**.
 
@@ -29,8 +32,9 @@ The web app is a simple HTML5 page with JS and SASS, compiled using webpack. I'v
 When the application is loaded page 1 of USD market is loaded from Bluzelle DB. Generic info are then saved locally in an object, so are not requested again when switching currency or going back and forth with pagination.
 
 To run the frontend
-    npm install
-    npm run start
+
+        npm install
+        npm run start
 
 **Additional info**
 Eth address: 0x367a53039D61Ff93849937E5Be78563F8e43c3F0
