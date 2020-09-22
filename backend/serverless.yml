@@ -2,15 +2,10 @@ service: crypto-market-app-blz-backend
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   versionFunctions: false
   stage: dev
   region: eu-west-1
-
-  environment:
-    # In a real production environment these will be set at deploy time from CI/CD
-    PUBLIC_PEM: 'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEn1zESCHd7tLD0OQ8SQz1bqlhGdbo1/XtwE4eNIwzMEE25YLSMzc7zh306e4+mXpK+j10Sozqx0V9VUEuW+kaJw=='
-    PRIVATE_PEM: 'MHQCAQEEIMQCcNKBybe6Swz/MJuDQe7HpvMbGP8qjx555I5BBnytoAcGBSuBBAAKoUQDQgAEn1zESCHd7tLD0OQ8SQz1bqlhGdbo1/XtwE4eNIwzMEE25YLSMzc7zh306e4+mXpK+j10Sozqx0V9VUEuW+kaJw=='
 
 functions:
   updateList:

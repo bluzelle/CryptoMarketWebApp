@@ -2,7 +2,6 @@
 
 // Import external dependencies
 const aws = require('aws-sdk');
-const pAll = require('p-all');
 const pRetry = require('p-retry');
 
 // Import internal dependencies
@@ -10,13 +9,16 @@ const coingeckoLib = require('./lib/coingecko');
 const bluzelleLib = require('./lib/bluzelle');
 
 module.exports.list = async (event)=> {
-
   // Get Bluzelle client
   let bluzelleClient;
   try {
-    bluzelleClient = await bluzelleLib.init(process.env.PUBLIC_PEM, process.env.PRIVATE_PEM, { log: false });
+    bluzelleClient = await bluzelleLib.init({
+      mnemonic: "dish film auto bundle nest hospital arctic giraffe surface afford tribe toe swing flavor outdoor hand slice diesel awesome excess liar impulse trumpet rare",
+      chain_id: "bluzelleTestNetPublic-6",
+      uuid: "0616d181-bdea-46db-aaba-4b02db6a7285",
+      endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319"
+    });
   } catch (error) {
-    // This might happen if the database is not created yet from http://studio.bluzelle.com/, or if the testnest has issues
     console.error('Error creating Bluzelle client', error);
   }
   if (!bluzelleClient) {
@@ -50,8 +52,6 @@ module.exports.list = async (event)=> {
     console.error(error);
   }
 
-  // Gracefully close and exit
-  bluzelleClient.close();
   return;
 }
 
@@ -80,9 +80,6 @@ const getAndSaveMarkets = async(currency, page = 1, bluzelleClient) => {
 
   // Process content if present, otherwise we're done
   if (response.length > 0) {
-    // First save coin info, then save the list, so at frontend we can't get a page without info
-    // Save coin info
-    await saveCoins(response, currency, bluzelleClient);
     // Save list
     await saveMarketPage(response, currency, page, bluzelleClient);
     // Recursively process next page
@@ -101,47 +98,18 @@ const getAndSaveMarkets = async(currency, page = 1, bluzelleClient) => {
  * @param {object} bluzelleClient
  */
 const saveMarketPage = async (coins, currency, page, bluzelleClient) => {
-  return await bluzelleLib.upsert(bluzelleClient, `coin-list:${currency}:page:${page}`, createSummaryList(coins))
+  return await bluzelleLib.upsert(bluzelleClient, `coin-list:${currency}:page:${page}`, coins.map((coin) => prepareDataForInsert(coin)));
 }
 
-/**
- * Save all coins, both generic info and market info
- *
- * @param {array} coins
- * @param {string} currency
- * @param {object} bluzelleClient
- */
-const saveCoins = async (coins, currency, bluzelleClient) => {
-  // Use a Promise.all with concurrency support.
-  let saveCoin = [];
-  coins.forEach((coin) => {
-    saveCoin = [
-      ...saveCoin,
-      // Save both generic coin info and specific market info
-      async() => bluzelleLib.upsert(bluzelleClient, `coin-details:${coin.id}`, createGenericInfo(coin)),
-      async() => bluzelleLib.upsert(bluzelleClient, `coin-market-details:${coin.id}:${currency}`, createMarketInfo(coin))
-    ]
-  });
-
-  return await pAll(saveCoin, { concurrency: 100 });
-}
-
-/**
- * Create a list leaving only the id
- *
- * @param {array} coinsList
- */
-const createSummaryList = (coinsList) => {
-  return coinsList.map((coin) => coin.id);
-}
-
-/**
- * Create a list leaving only the id
- *
- * @param {array} coinsList
- */
-const createMarketInfo = (coin) => {
+const prepareDataForInsert = (coin) => {
   return {
+    id: coin.id,
+    symbol: coin.symbol,
+    name: coin.name,
+    last_updated: coin.last_updated,
+    image: coin.image,
+    circulating_supply: coin.circulating_supply,
+    total_supply: coin.total_supply,
     market_cap: coin.market_cap,
     current_price: coin.current_price,
     circulating_supply: coin.circulating_supply,
@@ -158,22 +126,5 @@ const createMarketInfo = (coin) => {
     ath_date: coin.ath_date,
     roi: coin.roi,
     sparkline: coin.sparkline_in_7d
-  };
-}
-
-/**
- * Create a coin leaving only the generic info of a coin, i.e. not related to a specific market
- *
- * @param {object} coin
- */
-const createGenericInfo = (coin) => {
-  return {
-    id: coin.id,
-    symbol: coin.symbol,
-    name: coin.name,
-    last_updated: coin.last_updated,
-    image: coin.image,
-    circulating_supply: coin.circulating_supply,
-    total_supply: coin.total_supply
   };
 }

@@ -6,25 +6,20 @@
  */
 
 const pRetry = require('p-retry');
+const { bluzelle } = require('bluzelle');
 
-const {
-  bluzelle
-} = require('bluzelle');
+let existingKeys;
 
 /**
  * Init bluzelle client
  *
- * @param {string} publicKey
- * @param {string} privateKey
  * @param {object} options
  */
-const init = async (publicKey, privateKey, options = { log: false }) => {
+const init = async (config) => {
   try {
-    const bluzelleClient = await bluzelle({
-      public_pem: publicKey,
-      private_pem: privateKey,
-      ...options
-    });
+    const bluzelleClient = await bluzelle(config);
+    existingKeys = await bluzelleClient.keys();
+    console.log('existingKeys', existingKeys);
     return bluzelleClient;
   } catch (error) {
     // This might happen if the database is not created yet from http://studio.bluzelle.com/
@@ -48,43 +43,32 @@ const init = async (publicKey, privateKey, options = { log: false }) => {
 const upsert = async (client, key, value) => {
   key = key.toLowerCase();
   value = Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : value.toString();
-  console.log(`[${key}] Start upserting`);
+  // console.log(`[${key}] Start upserting`);
 
   return await pRetry(() => {
+    console.log(`[${key}] Starting...`);
     return new Promise(async (resolve, reject) => {
-      // Assuming that most of the times we will be updating a record (except for the first run ever),
-      // in this way we save ~50% of requests compared with the implementation commented below using has(key)
       try {
-        await client.update(key, value);
-        console.log(`[${key}] Correctly saved`);
-        resolve();
-      } catch (error) {
-        if (error && error.toString().includes('RECORD_NOT_FOUND')) {
-          console.log('Record not found, creating a new one');
-          await pRetry(async () => {
-            console.log(`[${key}] Start creating`);
-            return await client.create(key, value), {
-              retries: 5,
-              onFailedAttempt: (error) => {
-                console.log(`[${key}] Creation failed! Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
-              }
-            }
-          })
+        if (existingKeys.indexOf(key) > -1) {
+          await client.update(key, value, {'max_gas': 25000000, 'gas_price': 10});
+          console.log(`[${key}] Correctly upserted`);
           resolve();
         } else {
-          // console.error(`Key ${key} got error `, error);
-          reject(error);
+          await client.create(key, value, {'max_gas': 25000000, 'gas_price': 10});
+          console.log(`[${key}] Correctly created`);
+          resolve();
         }
+      } catch (error) {
+        console.log(`[${key}] Got error`, error);
+        reject(error);
       }
-
-      /* const has = await client.has(key);
-      if (await client.has(key)) {
-        return await client.update(key, value);
-      } else {
-        return await client.insert(key, value);
-      } */
     });
-  }, { retries: 5});
+  }, {
+    retries: 5,
+    onFailedAttempt: (error) => {
+      console.log(`[${key}] Creation failed! Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+    }
+  });
 }
 
 module.exports = {
