@@ -14,17 +14,11 @@ const {
 /**
  * Init bluzelle client
  *
- * @param {string} publicKey
- * @param {string} privateKey
- * @param {object} options
+ * @param {object} config
  */
-const init = async(publicKey, privateKey, options = { log: false }) => {
+const init = async(config) => {
   try {
-    const bluzelleClient = await bluzelle({
-      public_pem: publicKey,
-      private_pem: privateKey,
-      ...options
-    });
+    const bluzelleClient = await bluzelle(config);
     return bluzelleClient;
   } catch (error) {
     // This might happen if the database is not created yet from http://studio.bluzelle.com/

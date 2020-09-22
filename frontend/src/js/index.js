@@ -12,9 +12,6 @@ const BluzelleHelper = require('./bluzelle-helper');
 // Require SortableTable
 const TableHelper = require('./table-helper');
 
-// Bluzelle keys
-const blzPublicKey = 'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEn1zESCHd7tLD0OQ8SQz1bqlhGdbo1/XtwE4eNIwzMEE25YLSMzc7zh306e4+mXpK+j10Sozqx0V9VUEuW+kaJw==';
-const blzPrivateKey = 'MHQCAQEEIMQCcNKBybe6Swz/MJuDQe7HpvMbGP8qjx555I5BBnytoAcGBSuBBAAKoUQDQgAEn1zESCHd7tLD0OQ8SQz1bqlhGdbo1/XtwE4eNIwzMEE25YLSMzc7zh306e4+mXpK+j10Sozqx0V9VUEuW+kaJw==';
 let blzClient;
 
 // Keep all the generic info "cached". In this way when a coin is shown more than once
@@ -82,15 +79,17 @@ let viewAll = false;
  */
 const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
   // Empty table
-  TableHelper.emptyRows(rowsWrapper);
+  if (!viewAll) {
+    TableHelper.emptyRows(rowsWrapper);
+  }
 
   // Load coin list
   let coinListPage = await BluzelleHelper.read(blzClient, `coin-list:${selectedCurrency}:page:${selectedPage}`);
   coinListPage = JSON.parse(coinListPage);
   // Create an object with index and page info
   coinListPage = coinListPage.map((coin, index) => ({
-    coinId: coin,
-    index: viewAll ? 100 * (selectedPage - 1) + index + 1 : index + 1,
+    coin: coin,
+    index: viewAll ? 50 * (selectedPage - 1) + index + 1 : index + 1,
     page: selectedPage,
     currency: selectedCurrency,
     currencySymbol: currencySymbol[selectedCurrency]
@@ -111,99 +110,73 @@ const loadPage = async(rowsWrapper, selectedPage, selectedCurrency) => {
     });
 
     // Hide the next button at the end of the coins list
-    if (coinListPage.length < 100) {
+    if (coinListPage.length < 50) {
       document.querySelectorAll('.next-page-btn').forEach((element) => {
         element.classList.add('hide-btn');
       });
     }
   }
 
-  // Limit concurrency based on network speed (when available)
-  let concurrency = getConcurrencyForNetworkSpeed() || 3;
-
-  return await pMap(coinListPage, async(item) => {
-    // Wait for both requests (market info and generic info) to complete before updating the table row
-    const content = await pAll([
-      // Get generic coin info
-      async () => {
-        if (page !== item.page || currency !== item.currency) {
-          // If page or currency is changed, short circuit this with a no-op
-          // If page or currency is different, it means that the user has either changed the page or the currency while this was loading
-          // We don't need to do anything else as the content would be discarded anyway, or worst overwrite the correct one
-          return;
-        }
-
-        console.log(`Reading coin-details:${item.coinId}`);
-        // Used "cached" version for the generic info if available
-        if (coinGenericInfo[item.coinId]) {
-          return coinGenericInfo[item.coinId];
-        } else {
-          try {
-            let genericInfo = await BluzelleHelper.read(blzClient, `coin-details:${item.coinId}`);
-            genericInfo = JSON.parse(genericInfo);
-            // Save info so we don't need to load it multiple times
-            coinGenericInfo[item.coinId] = genericInfo;
-            return genericInfo;
-          } catch (error) {
-            console.error(`Error reading coin-details:${item.coinId}`, error);
-          }
-        }
-      },
-      // Get market coin info
-      async () => {
-        if (page !== item.page || currency !== item.currency) {
-          // If page or currency is changed, short circuit this with a no-op
-          // If page or currency is different, it means that the user has either changed the page or the currency while this was loading
-          // We don't need to do anything else as the content would be discarded anyway, or worst overwrite the correct one
-          return;
-        }
-
-        console.log(`Reading coin-market-details:${item.coinId}:${selectedCurrency}`);
-        try {
-          let marketInfo = await BluzelleHelper.read(blzClient, `coin-market-details:${item.coinId}:${selectedCurrency}`);
-          return JSON.parse(marketInfo);
-        } catch (error) {
-          console.error(`Error reading coin-details:${item.coinId}`, error);
-        }
-      }
-    ]);
-
-    // Fill row with content
-    const [genericInfo, marketInfo] = content;
-    if (genericInfo && marketInfo && page === item.page && currency === item.currency) {
+  // Fill row with content
+  coinListPage.forEach((item) => {
+    if (page === item.page && currency === item.currency) {
       const row = rowsWrapper.querySelector(`tr:nth-child(${item.index})`);
-      fillRow(row, genericInfo, marketInfo, item.currencySymbol);
+      fillRow(row, item.coin, item.currencySymbol);
     }
-  }, { concurrency: concurrency });
+  });
 }
 
 /**
  * Fill the given row with the data of a coin
  *
  * @param {object} row
- * @param {object} genericInfo
- * @param {object} marketInfo
+ * @param {object} coinInfo
  * @param {string} currencySymbol
  */
-const fillRow = (row, genericInfo, marketInfo, currencySymbol) => {
+const fillRow = (row, coinInfo, currencySymbol) => {
   // Image and name
-  row.children[1].innerHTML = `<img src="${genericInfo.image}" alt="${genericInfo.name}" width="16" height="16" class="coin-image"/> ${genericInfo.name}`;
+  row.children[1].innerHTML = `<img src="${coinInfo.image}" alt="${coinInfo.name}" width="16" height="16" class="coin-image"/> ${coinInfo.name}`;
   // Market cap
-  row.children[2].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.market_cap)}`;
+  if (coinInfo.market_cap || coinInfo.market_cap === 0) {
+    row.children[2].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.market_cap)}`;
+  } else {
+    row.children[2].textContent = '?';
+  }
+
   // Current price
-  row.children[3].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.current_price)}`;
+  if (coinInfo.current_price || coinInfo.current_price === 0) {
+    row.children[3].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.current_price)}`;
+  } else {
+    row.children[3].textContent = '?';
+  }
+
   // Total volume
-  row.children[4].textContent = `${currencySymbol}${numberFormatter.format(marketInfo.total_volume)}`;
+  if (coinInfo.total_volume || coinInfo.total_volume === 0) {
+    row.children[4].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.total_volume)}`;
+  } else {
+    row.children[4].textContent = '?';
+  }
+
   // Circulating supply
-  row.children[5].textContent = `${numberFormatter.format(genericInfo.circulating_supply)} ${genericInfo.symbol.toUpperCase()}`;
+  if (coinInfo.circulating_supply || coinInfo.circulating_supply === 0) {
+    row.children[5].textContent = `${numberFormatter.format(coinInfo.circulating_supply)} ${coinInfo.symbol.toUpperCase()}`;
+  } else {
+    row.children[5].textContent = '?';
+  }
+
   // 24h % change
-  row.children[6].textContent = `${numberFormatter.format(marketInfo.price_change_percentage_24h.toFixed(2))}%`;
+  if (coinInfo.price_change_percentage_24h || coinInfo.price_change_percentage_24h === 0) {
+    row.children[6].textContent = `${numberFormatter.format(coinInfo.price_change_percentage_24h.toFixed(2))}%`;
+  } else {
+    row.children[6].textContent = '?';
+  }
+
   // Set green or red color to 24h change
-  row.children[6].classList.add(marketInfo.price_change_percentage_24h >= 0 ? 'positive-change' : 'negative-change');
+  row.children[6].classList.add(coinInfo.price_change_percentage_24h >= 0 ? 'positive-change' : 'negative-change');
 
   // Create the spark line graph
   const graphCanvas = document.createElement('canvas');
-  graphCanvas.id = `sparkline-${genericInfo.id}`;
+  graphCanvas.id = `sparkline-${coinInfo.id}`;
   graphCanvas.width = 166;
   graphCanvas.height = 50;
   graphCanvas.classList.add('sparkline');
@@ -214,36 +187,13 @@ const fillRow = (row, genericInfo, marketInfo, currencySymbol) => {
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: marketInfo.sparkline.price.map(() => ''),
+      labels: coinInfo.sparkline.price.map(() => ''),
       datasets: [{
-        data: marketInfo.sparkline.price
+        data: coinInfo.sparkline.price
       }]
     },
     options: sparklineOptions
   });
-}
-
-/**
- * Tries a network optimization based on the rtt (which seems more reliable than downlink)
- * Based on the rtt, set the concurrency accordingly
- */
-const getConcurrencyForNetworkSpeed = () => {
-  let concurrency;
-  if (navigator && navigator.connection && navigator.connection.rtt) {
-    if (navigator.connection.rtt < 50) {
-      concurrency = 20;
-    } else if (navigator.connection.rtt < 100) {
-      concurrency = 15;
-    } else if (navigator.connection.rtt >= 100 && navigator.connection.rtt < 300) {
-      concurrency = 5;
-    } else if (navigator.connection.rtt >= 300 && navigator.connection.rtt < 600) {
-      concurrency = 2;
-    } else {
-      concurrency = 1;
-    }
-  }
-
-  return concurrency;
 }
 
 /* Methods to load pages */
@@ -279,7 +229,6 @@ const loadFirstPage = async(rowsWrapper, currency) => {
 const previousPage = async (rowsWrapper, currency) => {
   if (page >= 2) {
     page = page - 1;
-    viewAll = false;
     await loadPage(rowsWrapper, page, currency);
   }
 }
@@ -292,7 +241,6 @@ const previousPage = async (rowsWrapper, currency) => {
  */
 const nextPage = async (rowsWrapper, currency) => {
   page = page + 1;
-  viewAll = false;
   await loadPage(rowsWrapper, page, currency);
 }
 
@@ -317,8 +265,9 @@ const loadAllPages = async (rowsWrapper, currency) => {
   // Reset page and load pages
   // If viewAll or currency are updated, this will stop loading further pages
   page = 0;
+  let result = [];
   try {
-    while (result = await nextPage(rowsWrapper, currency), result && result.length === 100, viewAll, currency === currency) {
+    while (result = await nextPage(rowsWrapper, currency), result && result.length === 50, viewAll, currency === currency) {
       console.log('loading next page');
     }
   } catch (error) {
@@ -333,11 +282,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rowsWrapper = coinsTable.querySelector('tbody');
 
   // Setup table (mostly for UI reasons)
-  TableHelper.adjustRows(rowsWrapper, 100, false);
+  TableHelper.adjustRows(rowsWrapper, 50, false);
 
   // Init Bluzelle
   try {
-    blzClient = await BluzelleHelper.init(blzPublicKey, blzPrivateKey, {});
+    blzClient = await BluzelleHelper.init({
+      mnemonic: "dish film auto bundle nest hospital arctic giraffe surface afford tribe toe swing flavor outdoor hand slice diesel awesome excess liar impulse trumpet rare",
+      chain_id: "bluzelleTestNetPublic-6",
+      uuid: "0616d181-bdea-46db-aaba-4b02db6a7285",
+      endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319"
+    });
   } catch (error) {
     if (error.toString().includes('legacy access request rate exceeded')) {
       alert('Bluzelle returned error: legacy access request rate exceeded. Please wait some seconds then reload the page.');
@@ -355,21 +309,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Bind prev, next and view all buttons
   document.querySelectorAll('.prev-page-btn').forEach((element) => {
     element.addEventListener('click', async() => {
+      viewAll = false;
       previousPage(rowsWrapper, currency);
     })
   });
   document.querySelectorAll('.next-page-btn').forEach((element) => {
     element.addEventListener('click', async() => {
+      viewAll = false;
       nextPage(rowsWrapper, currency);
     })
   });
   document.querySelectorAll('.view-all-btn').forEach((element) => {
     element.addEventListener('click', async() => {
+      viewAll = true;
       loadAllPages(rowsWrapper, currency);
     });
   });
   document.querySelectorAll('.paginate-btn').forEach((element) => {
     element.addEventListener('click', async() => {
+      viewAll = false;
       loadFirstPage(rowsWrapper, currency);
     });
   });

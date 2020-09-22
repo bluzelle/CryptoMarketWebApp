@@ -19,7 +19,7 @@ const getMarketsPage = async (currency = 'USD', page = 1) => {
   // No need to include an entire http client as dependency only for this, let's keep it as lightweight as possible
 
   return new Promise((resolve, reject) => {
-    https.get(`${coingeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=${page}&sparkline=true`, (resp) => {
+    https.get(`${coingeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=50&page=${page}&sparkline=true`, (resp) => {
       // Save chunk of datas
       let data = [];
       resp.on('data', (chunk) => {
