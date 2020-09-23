@@ -18,6 +18,6 @@ functions:
   updateList:
     handler: updater.list
     name: cma-list-update
-    timeout: 900
+    timeout: 600
     events:
-      - schedule: cron(*/30 * * * ? *)
+      - schedule: cron(*/15 * * * ? *)
