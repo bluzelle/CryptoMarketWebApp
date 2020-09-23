@@ -50,7 +50,7 @@ module.exports.list = async (event)=> {
         InvocationType: 'Event',
         Payload: JSON.stringify({currency: 'BTC', "detail-type": 'Lambda Event'})
       })
-      //invocation.send();
+      invocation.send();
     }
   } catch (error) {
     console.error(error);
