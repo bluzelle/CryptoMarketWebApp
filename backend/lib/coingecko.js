@@ -5,9 +5,11 @@
  * It adds a very simple abstraction to get the page
  */
 
-const https = require('https');
+const axios = require('axios');
+const delay = require('delay');
 
 const coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
+const coinsPerPage = 50;
 
 /**
  * Calls the /coins/markets endpoint using the provided currency and page
@@ -16,32 +18,23 @@ const coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
  * @param {number} page
  */
 const getMarketsPage = async (currency = 'USD', page = 1) => {
-  // No need to include an entire http client as dependency only for this, let's keep it as lightweight as possible
+  await delay.range(1000, 3000);
+  console.log(`Requesting page ${page}`);
+  const { data } = await axios.get(`${coingeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=${coinsPerPage}&page=${page}&sparkline=true`);
+  console.log(`Request for page ${page} completed`);
+  return data;
+}
 
-  return new Promise((resolve, reject) => {
-    https.get(`${coingeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=50&page=${page}&sparkline=true`, (resp) => {
-      // Save chunk of datas
-      let data = [];
-      resp.on('data', (chunk) => {
-        data = [
-          ...data,
-          chunk
-        ];
-      });
-
-      // Join and return a parsed response
-      resp.on('end', () => {
-        console.log('Request completed'),
-        resolve(JSON.parse(data.join('')));
-      });
-
-    }).on("error", (err) => {
-      console.error(err);
-      reject(err);
-    });
-  });
+/**
+ * Calls the /coins/list endpoint
+ */
+const getCoinListPage = async () => {
+  const { data } = await axios.get(`${coingeckoBaseUrl}/coins/list`);
+  return data;
 }
 
 module.exports = {
+  coinsPerPage,
+  getCoinListPage,
   getMarketsPage
 }
