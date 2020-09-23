@@ -6,8 +6,11 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.20.0",
     "bluzelle": "^2.0.9",
+    "delay": "^4.4.0",
     "p-all": "^2.1.0",
+    "p-map": "^4.0.0",
     "p-retry": "^4.1.0",
     "serverless": "^1.50.0"
   },
