@@ -42,11 +42,12 @@ module.exports.list = async (event)=> {
       await getAndSaveAllMarkets('USD', bluzelleClient);
 
       const lambda = new aws.Lambda();
-      lambda.invoke({
+      const invocation = lambda.invoke({
         FunctionName: 'cma-list-update',
         InvocationType: 'Event',
         Payload: JSON.stringify({currency: 'BTC', "detail-type": 'Lambda Event'})
       })
+      invocation.send();
     }
   } catch (error) {
     console.error(error);
