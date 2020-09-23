@@ -20,4 +20,4 @@ functions:
     name: cma-list-update
     timeout: 600
     events:
-      - schedule: rate(15 minutes)
+      - schedule: rate(10 minutes)
