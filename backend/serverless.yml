@@ -7,6 +7,13 @@ provider:
   stage: dev
   region: eu-west-1
 
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - lambda:*
+      Resource:
+        - arn:aws:lambda:eu-west-1:*:function:cma-list-update
+
 functions:
   updateList:
     handler: updater.list
