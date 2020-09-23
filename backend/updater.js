@@ -3,6 +3,7 @@
 // Import external dependencies
 const aws = require('aws-sdk');
 const pRetry = require('p-retry');
+const pMap = require('p-map');
 
 // Import internal dependencies
 const coingeckoLib = require('./lib/coingecko');
@@ -36,10 +37,12 @@ module.exports.list = async (event)=> {
       // This execution round has been invoked by a previous lambda execution
       // Get the currenct from the event and proceed
       currency = event.currency;
-      await getAndSaveAllMarkets(currency, bluzelleClient);
+      const marketData = await getMarketData(currency);
+      await saveMarketData(marketData, currency);
     } else {
       // This execution round has been invoked by AWS, default to currency = USD and proceed
-      await getAndSaveAllMarkets('USD', bluzelleClient);
+      const marketData = await getMarketData(currency);
+      await saveMarketData(marketData, currency);
 
       const lambda = new aws.Lambda();
       const invocation = lambda.invoke({
@@ -47,7 +50,7 @@ module.exports.list = async (event)=> {
         InvocationType: 'Event',
         Payload: JSON.stringify({currency: 'BTC', "detail-type": 'Lambda Event'})
       })
-      invocation.send();
+      //invocation.send();
     }
   } catch (error) {
     console.error(error);
@@ -57,49 +60,49 @@ module.exports.list = async (event)=> {
 }
 
 /**
- * Main method to get and save all markets
+ * Concurrently request all coins data
  *
  * @param {string} currency
- * @param {object} bluzelleClient
  */
-const getAndSaveAllMarkets = async(currency, bluzelleClient) => {
-  return await getAndSaveMarkets(currency, 1, bluzelleClient);
+const getMarketData = async(currency) => {
+  console.log('Start retrieving pages');
+
+  // Get generic coin list
+  const genericCoinList = await coingeckoLib.getCoinListPage();
+
+  // Calculate total number of pages needed, based on the amount of coins retrieved for each page
+  const totalNumberOfCoins = genericCoinList.length;
+  const totalNuberOfPages = Math.ceil(totalNumberOfCoins / coingeckoLib.coinsPerPage);
+  console.log(`Found ${totalNumberOfCoins} coins, for a total of ${totalNuberOfPages} pages`);
+
+  // Setup concurrent execution
+  let executions = Array.from(Array(totalNuberOfPages));
+  executions = executions.map((_, index) => ({
+    currency,
+    page: index
+  }));
+  const mapper = async (setupData) =>  await pRetry(() => coingeckoLib.getMarketsPage(setupData.currency, setupData.page), {
+    onFailedAttempt: async (error) => {
+      console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+      console.log(`${error.response.status}: ${error.response.statusText}`);
+		},
+    retries: 5
+  });
+
+  const marketData = await pMap(executions, mapper, { concurrency : 5});
+
+  console.log('All pages retrieved!');
+
+  return marketData;
 }
 
-/**
- * Recursively get the page and save it to db
- *
- * @param {string} currency
- * @param {number} page
- * @param {object} bluzelleClient
- */
-const getAndSaveMarkets = async(currency, page = 1, bluzelleClient) => {
-  console.log('getAndSaveMarkets:  ', currency, page);
+const saveMarketData = async(marketData, currency) => {
+  const preparedMarkedData = marketData.map((data, index) => ({
+    key: `coin-list:${currency}:page:${index}`,
+    data: prepareDataForInsert(data)
+  }));
 
-  // Get the page
-  const response = await pRetry(() => coingeckoLib.getMarketsPage(currency, page), { retries: 5 });
-
-  // Process content if present, otherwise we're done
-  if (response.length > 0) {
-    // Save list
-    await saveMarketPage(response, currency, page, bluzelleClient);
-    // Recursively process next page
-    return await getAndSaveMarkets(currency, page + 1, bluzelleClient);
-  }
-  return;
-}
-
-/**
- * Save the page (list of coins) to Bluzelle
- * In case of errors (i.e. timeout, network errors), retry max 5 times
- *
- * @param {array} coins
- * @param {string} currency
- * @param {number} page
- * @param {object} bluzelleClient
- */
-const saveMarketPage = async (coins, currency, page, bluzelleClient) => {
-  return await bluzelleLib.upsert(bluzelleClient, `coin-list:${currency}:page:${page}`, coins.map((coin) => prepareDataForInsert(coin)));
+  return await bluzelleLib.saveData(preparedMarkedData);
 }
 
 const prepareDataForInsert = (coin) => {
