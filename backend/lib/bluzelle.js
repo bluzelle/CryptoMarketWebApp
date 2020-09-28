@@ -8,6 +8,8 @@
 const pRetry = require('p-retry');
 const { bluzelle } = require('bluzelle');
 
+const maxGas = 10000000; // 10.000.000
+
 let client;
 
 /**
@@ -50,35 +52,29 @@ const saveData = async(data) => {
 const upsert = async (existingKeys, key, value) => {
   key = key.toLowerCase();
   value = Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : value.toString();
-  // console.log(`[${key}] Start upserting`);
+  //console.log(`[${key}] Start upserting with value ${value}`);
+  console.log(`[${key}] Start upserting`);
 
-  return await pRetry(() => {
-    console.log(`[${key}] Starting...`);
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (existingKeys.indexOf(key) > -1) {
-          await client.update(key, value, {'max_gas': 25000000, 'gas_price': 10});
-          console.log(`[${key}] Correctly upserted`);
-          resolve();
-        } else {
-          await client.create(key, value, {'max_gas': 25000000, 'gas_price': 10});
-          console.log(`[${key}] Correctly created`);
-          resolve();
-        }
-      } catch (error) {
-        console.log(`[${key}] Got error`, error);
-        reject(error);
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (existingKeys.indexOf(key) > -1) {
+        await client.update(key, value, {'max_gas': maxGas, 'gas_price': 10});
+        console.log(`[${key}] Correctly upserted`);
+        resolve();
+      } else {
+        await client.create(key, value, {'max_gas': maxGas, 'gas_price': 10});
+        console.log(`[${key}] Correctly created`);
+        resolve();
       }
-    });
-  }, {
-    retries: 5,
-    onFailedAttempt: (error) => {
-      console.log(`[${key}] Creation failed! Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+    } catch (error) {
+      console.log(`[${key}] Got error`, error);
+      reject(error);
     }
   });
 }
 
 module.exports = {
   init,
-  saveData
+  saveData,
+  maxGas
 }

@@ -6,6 +6,9 @@ provider:
   versionFunctions: false
   stage: dev
   region: eu-west-1
+  environment:
+    mnemonic: ${env:mnemonic}
+    uuid: ${env:uuid}
 
   iamRoleStatements:
     - Effect: "Allow"
@@ -14,6 +17,9 @@ provider:
       Resource:
         - arn:aws:lambda:eu-west-1:*:function:cma-list-update
 
+plugins:
+  - serverless-dotenv-plugin
+
 functions:
   updateList:
     handler: updater.list
@@ -21,3 +27,11 @@ functions:
     timeout: 600
     events:
       - schedule: rate(10 minutes)
+
+  #transferFunds:
+  #  handler: funds.transfer
+  #  name: cma-funds-transfer
+
+  #checkAccounts:
+  #  handler: funds.check
+  #  name: cma-funds-check
