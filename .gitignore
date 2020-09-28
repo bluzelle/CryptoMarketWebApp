@@ -8,4 +8,6 @@ jspm_packages
 **/dist
 **/.env
 **/.env.development
-**/.env.production
+**/.env.prod
+
+backend/funds.js
