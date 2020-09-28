@@ -77,6 +77,15 @@ h1 {
   margin: 20px auto;
 }
 
+.pagination {
+  padding: 0px 10px;
+  line-height: 2;
+}
+
+.hide {
+  visibility: hidden;
+}
+
 #coins-list-table,
 .buttons {
   width: 100%;
@@ -136,7 +145,7 @@ h1 {
   padding: 20px 0px;
 
   .currency-selector, .btn {
-    -webkit-appearance: none;
+    /* -webkit-appearance: none; */
     padding: 6px 12px;
     background-color: #fff;
     border-color: #e1e5ea;
