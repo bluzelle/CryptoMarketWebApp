@@ -9,16 +9,20 @@ const pMap = require('p-map');
 const coingeckoLib = require('./lib/coingecko');
 const bluzelleLib = require('./lib/bluzelle');
 
+let bluzelleClient;
+
 module.exports.list = async (event)=> {
   // Get Bluzelle client
-  let bluzelleClient;
+
+  const bzConfig = {
+    mnemonic: process.env.mnemonic,
+    chain_id: "bluzelleTestNetPublic-6",
+    uuid: process.env.uuid,
+    endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319/"
+  }
+
   try {
-    bluzelleClient = await bluzelleLib.init({
-      mnemonic: "dish film auto bundle nest hospital arctic giraffe surface afford tribe toe swing flavor outdoor hand slice diesel awesome excess liar impulse trumpet rare",
-      chain_id: "bluzelleTestNetPublic-6",
-      uuid: "0616d181-bdea-46db-aaba-4b02db6a7285",
-      endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319"
-    });
+    bluzelleClient = bluzelleClient || await bluzelleLib.init(bzConfig);
   } catch (error) {
     console.error('Error creating Bluzelle client', error);
   }
@@ -33,24 +37,34 @@ module.exports.list = async (event)=> {
     // This allows the lambda to be executed without incurring in timeouts
     // As many currencies as needed can be added with this method: USD and BTC are only examples
     let currency = 'USD';
+    console.log(`Starting with currency ${currency}`);
     if ('Lambda Event' === event['detail-type']) {
       // This execution round has been invoked by a previous lambda execution
       // Get the currenct from the event and proceed
       currency = event.currency;
       const marketData = await getMarketData(currency);
+      if (!marketData) {
+        return;
+      }
+
       await saveMarketData(marketData, currency);
     } else {
       // This execution round has been invoked by AWS, default to currency = USD and proceed
       const marketData = await getMarketData(currency);
+      if (!marketData) {
+        return;
+      }
       await saveMarketData(marketData, currency);
+      console.log('Update successfully completed, now update BTC currency');
 
       const lambda = new aws.Lambda();
       const invocation = lambda.invoke({
         FunctionName: 'cma-list-update',
         InvocationType: 'Event',
         Payload: JSON.stringify({currency: 'BTC', "detail-type": 'Lambda Event'})
-      })
-      invocation.send();
+      });
+
+      //invocation.send();
     }
   } catch (error) {
     console.error(error);
@@ -75,11 +89,20 @@ const getMarketData = async(currency) => {
   const totalNuberOfPages = Math.ceil(totalNumberOfCoins / coingeckoLib.coinsPerPage);
   console.log(`Found ${totalNumberOfCoins} coins, for a total of ${totalNuberOfPages} pages`);
 
+  let bnt = await bluzelleClient.getBNT();
+  console.log('BNT', bnt);
+  bnt = bnt * 1000000; // Convert bnt to ubnt
+
+  if (bnt < bluzelleLib.maxGas * 10 * totalNuberOfPages) {
+    console.log('Notice: insufficient funds');
+    return;
+  }
+
   // Setup concurrent execution
   let executions = Array.from(Array(totalNuberOfPages));
   executions = executions.map((_, index) => ({
     currency,
-    page: index
+    page: index + 1
   }));
   const mapper = async (setupData) =>  await pRetry(() => coingeckoLib.getMarketsPage(setupData.currency, setupData.page), {
     onFailedAttempt: async (error) => {
@@ -89,8 +112,7 @@ const getMarketData = async(currency) => {
     retries: 5
   });
 
-  const marketData = await pMap(executions, mapper, { concurrency : 5});
-
+  let marketData = await pMap(executions, mapper, { concurrency : 5});
   console.log('All pages retrieved!');
 
   return marketData;
@@ -98,11 +120,27 @@ const getMarketData = async(currency) => {
 
 const saveMarketData = async(marketData, currency) => {
   const preparedMarkedData = marketData.map((data, index) => ({
-    key: `coin-list:${currency}:page:${index}`,
-    data: prepareDataForInsert(data)
+    key: `coin-list:${currency}:page:${index + 1}`,
+    data: data.map((coin) => prepareDataForInsert(coin))
   }));
 
-  return await bluzelleLib.saveData(preparedMarkedData);
+  // Need to batch 3 pages for transaction, to avoid hitting the size limit
+  const batchSize = 3;
+  const batches = Math.ceil(marketData.length / batchSize);
+  console.log(`Need to save ${batches} batches`);
+
+  let batch = 0;
+  while(batch < batches) {
+    const batchStart = batch * batchSize;
+    const batchEnd = batchStart + batchSize;
+    console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
+    await bluzelleLib.saveData(preparedMarkedData.slice(batchStart, batchEnd));
+    console.log(`Batch #${batch} saved`);
+    batch++;
+  }
+
+  //return await bluzelleLib.saveData(preparedMarkedData);
+  return;
 }
 
 const prepareDataForInsert = (coin) => {
