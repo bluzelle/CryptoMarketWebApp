@@ -2,7 +2,7 @@
 
 Decentralized version of coinmarketcap.com. All data stored only on Bluzelle. End product should be similar to **CoinMarketCap.com**.
 
-**Part 1**.
+## Part 1.
 
 As Bluzelle is the database for serverless applications, the backend is a Lambda function hosted on AWS.
 It runs every 15 minutes, but its fully configurable.
@@ -15,7 +15,7 @@ Naming used for keys:
 
 Backend uses the [serverless framework](https://www.serverless.com/) to manage stack and deployment.
 
-**Part 2**.
+## Part 2.
 
 The web app is a simple HTML5 page with JS and SASS, compiled using webpack. I've decided to avoid using libraries or frameworks like Angular to keep things simple and focused on Bluzelle.
 
@@ -27,8 +27,8 @@ To run the frontend
         npm run start
 
 
-**How to deploy**
-***Backend***
+## How to deploy
+### Backend
 
         cd backend
         npm install
@@ -44,7 +44,7 @@ Function can be run locally using
 
 inside the backend directory
  
-***Frontend***
+### Frontend
 
         cd frontend
         npm install 
