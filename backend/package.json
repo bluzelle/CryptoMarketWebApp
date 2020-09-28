@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.20.0",
-    "bluzelle": "^2.0.9",
+    "bluzelle": "^2.1.0",
     "delay": "^4.4.0",
     "p-all": "^2.1.0",
     "p-map": "^4.0.0",
@@ -15,6 +15,7 @@
     "serverless": "^1.50.0"
   },
   "devDependencies": {
-    "aws-sdk": "^2.543.0"
+    "aws-sdk": "^2.543.0",
+    "serverless-dotenv-plugin": "^3.0.0"
   }
 }
