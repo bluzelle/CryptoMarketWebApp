@@ -129,7 +129,7 @@ const loadFirstPage = async(rowsWrapper, status) => {
  * @param {object} rowsWrapper
  * @param {number} currency
  */
-const previousPage = async (rowsWrapper, currency) => {
+const previousPage = async (rowsWrapper, status) => {
   if (status.page >= 2) {
     status.page = status.page - 1;
 
@@ -300,10 +300,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       status.currency = event.currentTarget.value;
       if (status.viewAll) {
         // Reload al pages with updated currency
-        loadAllPages(rowsWrapper, status.currency);
+        loadAllPages(rowsWrapper, status);
       } else {
-        // Reload current page with updated currency
-        loadPage(rowsWrapper, page, status.currency);
+        // Empty table
+        TableHelper.emptyRows(rowsWrapper);
+        status.page = status.page - 1;
+        await nextPage(rowsWrapper, status);
       }
     });
   });
