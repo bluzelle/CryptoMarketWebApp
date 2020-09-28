@@ -28,10 +28,10 @@ functions:
     events:
       - schedule: rate(10 minutes)
 
-  #transferFunds:
-  #  handler: funds.transfer
-  #  name: cma-funds-transfer
+  transferFunds:
+    handler: funds.transfer
+    name: cma-funds-transfer
 
-  #checkAccounts:
-  #  handler: funds.check
-  #  name: cma-funds-check
+  checkAccounts:
+    handler: funds.check
+    name: cma-funds-check
