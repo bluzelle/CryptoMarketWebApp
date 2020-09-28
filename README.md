@@ -27,8 +27,8 @@ To run the frontend
         npm run start
 
 
-** How to deploy **
-*** Backend ***
+**How to deploy**
+***Backend***
 
         cd backend
         npm install
@@ -44,7 +44,7 @@ Function can be run locally using
 
 inside the backend directory
  
-*** Frontend ***
+***Frontend***
 
         cd frontend
         npm install 
