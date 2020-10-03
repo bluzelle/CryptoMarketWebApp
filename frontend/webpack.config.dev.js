@@ -53,7 +53,11 @@ module.exports = {
     contentBase: path.resolve(__dirname, 'dist'),
     watchContentBase: true,
     port: 9000,
-    publicPath: '/'
+    publicPath: '/',
+    historyApiFallback: true
   },
+  output: {
+    publicPath: '/'
+  }
   /* watch: true */
 };
