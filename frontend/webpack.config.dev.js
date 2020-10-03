@@ -1,6 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const DotenvPlugin = require('dotenv-webpack');
 
 module.exports = {
   module: {
@@ -40,6 +41,9 @@ module.exports = {
       inject: true,
       filename: path.resolve(__dirname, 'dist/index.html'),
       template: path.resolve(__dirname, 'index.html'),
+    }),
+    new DotenvPlugin({
+      path: './.env'
     })
   ],
   entry: ['babel-polyfill', path.resolve(__dirname, 'src/js/index.js')],

@@ -16,9 +16,9 @@ module.exports.list = async (event)=> {
 
   const bzConfig = {
     mnemonic: process.env.mnemonic,
-    chain_id: "bluzelleTestNetPublic-6",
+    chain_id: process.env.chain_id,
     uuid: process.env.uuid,
-    endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319/"
+    endpoint: process.env.endpoint
   }
 
   try {

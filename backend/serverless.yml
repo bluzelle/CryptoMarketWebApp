@@ -9,6 +9,8 @@ provider:
   environment:
     mnemonic: ${env:mnemonic}
     uuid: ${env:uuid}
+    chain_id: ${env:chain_id}
+    endpoint: ${env:endpoint}
 
   iamRoleStatements:
     - Effect: "Allow"
