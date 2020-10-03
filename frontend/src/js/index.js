@@ -213,10 +213,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Init Bluzelle
   try {
     blzClient = await BluzelleHelper.init({
-      mnemonic: "humor symbol donate time vibrant candy worth amateur acid brother traffic retire apple label maid someone solution plug escape nest reunion permit pulp helmet",
-      chain_id: "bluzelleTestNetPublic-6",
-      uuid: "74a6f157-ee57-470e-b8ca-e62b56b924b1",
-      endpoint: "https://client.sentry.testnet.public.bluzelle.com:1319"
+      mnemonic: process.env.mnemonic,
+      chain_id: process.env.chain_id,
+      uuid: process.env.uuid,
+      endpoint: process.env.endpoint
     });
   } catch (error) {
     if (error.toString().includes('legacy access request rate exceeded')) {
