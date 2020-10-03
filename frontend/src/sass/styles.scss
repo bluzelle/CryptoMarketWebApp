@@ -144,7 +144,7 @@ h1 {
   justify-content: flex-end;
   padding: 20px 0px;
 
-  .currency-selector, .btn {
+  .currency-selector, .page-selector, .btn {
     /* -webkit-appearance: none; */
     padding: 6px 12px;
     background-color: #fff;
@@ -154,11 +154,23 @@ h1 {
     font-size: 1rem;
   }
 
-  .currency-selector {
+  .currency-selector, .page-selector{
     margin-right: 12px;
   }
 
   .hide-btn {
     display: none;
+  }
+}
+
+.view-all-show {
+  display: none;
+}
+.view-all-active {
+  .view-all-hide {
+    display: none;
+  }
+  .view-all-show {
+    display: block;
   }
 }

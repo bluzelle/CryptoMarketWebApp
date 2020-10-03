@@ -9,7 +9,6 @@ const TableHelper = require('./table-helper');
 const PCancelable = require('p-cancelable');
 
 let blzClient;
-let currentRequest;
 
 // Match currency with its symbol
 const currencySymbol = {
@@ -20,10 +19,14 @@ const currencySymbol = {
 const status = {
   // Current page
   page: 0,
+  // Total pages
+  numberOfPages: null,
   // Current currency
   currency: 'usd',
   // It's a view all?
-  viewAll: false
+  viewAll: false,
+  // Request in progress
+  requestInProgress: null
 }
 
 let currentPageElements = document.querySelectorAll('.pagination .current-page');
@@ -35,32 +38,12 @@ let currentPageElements = document.querySelectorAll('.pagination .current-page')
  * @param {object} data
  * @param {object} status
  */
-const updatePage = (rowsWrapper, data, status) => {
+const updatePageContent = (rowsWrapper, data, status) => {
   console.log('updatePage status', status);
   // Adjust number of rows in table based on response
   TableHelper.adjustRows(rowsWrapper, data.length, status.viewAll);
 
-  // Handle UI adjustments based on page and results total
-  if (!status.viewAll) {
-    if (status.page === 1) {
-      // Hide prev button if this is the first page
-      document.querySelectorAll('.prev-page-btn').forEach((element) => {
-        element.classList.add('hide-btn');
-      });
-    } else {
-      // Show prev button when page is the second or more
-      document.querySelectorAll('.prev-page-btn').forEach((element) => {
-        element.classList.remove('hide-btn');
-      });
-
-      // Hide the next button at the end of the coins list
-      if (data.length < 50) {
-        document.querySelectorAll('.next-page-btn').forEach((element) => {
-          element.classList.add('hide-btn');
-        });
-      }
-    }
-  }
+  updateUiControls();
 
   // Fill row with content
   data.forEach((item) => {
@@ -69,6 +52,40 @@ const updatePage = (rowsWrapper, data, status) => {
       TableHelper.fillRow(row, item.position, item.coin, item.currencySymbol);
     }
   });
+}
+
+/**
+ * Update the UI controls based on status
+ */
+const updateUiControls = () => {
+  if (!status.viewAll) {
+    document.body.classList.remove('view-all-active');
+
+    if (status.page === 1) {
+      document.querySelectorAll('.back-50-btn, .first-page-btn, .prev-page-btn').forEach((element) => {
+        element.classList.add('hide-btn');
+      });
+      document.querySelectorAll('.next-page-btn, .last-page-btn').forEach((element) => {
+        element.classList.remove('hide-btn');
+      });
+    } else {
+      document.querySelectorAll('.first-page-btn, .prev-page-btn').forEach((element) => {
+        element.classList.remove('hide-btn');
+      });
+
+      if (status.page === status.numberOfPages) {
+        document.querySelectorAll('.next-page-btn, .last-page-btn').forEach((element) => {
+          element.classList.add('hide-btn');
+        });
+      }
+    }
+
+    document.querySelectorAll('.page-selector').forEach((select) => {
+      select.querySelector(`option[value='${status.page}']`).selected = true;
+    });
+  } else {
+    document.body.classList.add('view-all-active');
+  }
 }
 
 /**
@@ -94,7 +111,7 @@ const loadPage = (status) => {
       currencySymbol: currencySymbol[status.currency]
     }));
 
-    currentRequest = null;
+    status.requestInProgress = null;
     resolve(coinListPage);
   });
 }
@@ -109,7 +126,9 @@ const loadPage = (status) => {
  */
 const loadFirstPage = async(rowsWrapper, status) => {
   // Reset page
-  status.page = 0;
+  status.page = 1;
+
+  updateUiControls();
 
   // Hide and show pagination buttons for first page
   document.querySelectorAll('.back-50-btn, .prev-page-btn').forEach((element) => {
@@ -120,56 +139,30 @@ const loadFirstPage = async(rowsWrapper, status) => {
   });
 
   // Load page
-  await nextPage(rowsWrapper, status);
+  await getPage(rowsWrapper, status);
 }
 
 /**
- * Handler to load previous page
+ * Handler to go to a page
  *
  * @param {object} rowsWrapper
  * @param {number} currency
  */
-const previousPage = async (rowsWrapper, status) => {
-  if (status.page >= 2) {
-    status.page = status.page - 1;
-
-    // Cancel a pending request, if any
-    if (currentRequest) {
-      currentRequest.cancel();
-    }
-
-    try {
-      const pageContent = await loadPage(status);
-      updatePage(rowsWrapper, pageContent, status);
-    } catch (error) {
-      if (currentRequest && currentRequest.isCanceled) {
-        console.log('Another page requested, abort this');
-      } else {
-        throw error;
-      }
-    }
-  }
-}
-
-/**
- * Handler to load next page
- *
- * @param {object} rowsWrapper
- * @param {number} currency
- */
-const nextPage = async (rowsWrapper, status) => {
-  status.page = status.page + 1;
-
+const getPage = async (rowsWrapper, status) => {
   // Cancel a pending request, if any
-  if (currentRequest) {
-    currentRequest.cancel();
+  if (status.requestInProgress) {
+    status.requestInProgress.cancel();
+    status.requestInProgress = null;
   }
 
   try {
     const pageContent = await loadPage(status);
-    updatePage(rowsWrapper, pageContent, status);
+    if (!status.requestInProgress) {
+      updatePageContent(rowsWrapper, pageContent, status);
+      return pageContent;
+    }
   } catch (error) {
-    if (currentRequest && currentRequest.isCanceled) {
+    if (status.requestInProgress && status.requestInProgress.isCanceled) {
       console.log('Another page requested, abort this');
     } else {
       throw error;
@@ -186,20 +179,15 @@ const nextPage = async (rowsWrapper, status) => {
 const loadAllPages = async (rowsWrapper, status) => {
   TableHelper.adjustRows(rowsWrapper, 0, status.viewAll);
 
-  // Hide and show pagination buttons for first page
-  document.querySelectorAll('.back-50-btn').forEach((element) => {
-    element.classList.remove('hide-btn');
-  });
-  document.querySelectorAll('.view-all-btn, .prev-page-btn, .next-page-btn').forEach((element) => {
-    element.classList.add('hide-btn');
-  });
+  updateUiControls();
 
   // Reset page and load pages
-  status.page = 0;
+  status.page = 1;
   let result = [];
   try {
-    while (result = await nextPage(rowsWrapper, status), result && result.length === 50, status.viewAll) {
+    while (result = await getPage(rowsWrapper, status), result && result.length === 50 && status.viewAll && status.page <= status.numberOfPages) {
       console.log('loading next page');
+      status.page++
     }
   } catch (error) {
     console.error(error);
@@ -216,6 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rowsWrapper = coinsTable.querySelector('tbody');
   const paginationWrappers = document.querySelectorAll('.pagination');
   currentPageElements = document.querySelectorAll('.pagination .current-page');
+
   const totalNumberOfPages = document.querySelectorAll('.pagination .total-pages');
 
   // Setup table (mostly for UI reasons)
@@ -244,41 +233,74 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const existingKeys = await blzClient.keys();
-  const numberOfPages = existingKeys
+  status.numberOfPages = existingKeys
     .filter((key) => {
       return key.includes(`coin-list:${status.currency}:page:`)
     })
     .length;
 
   currentPageElements.forEach((item) => item.textContent = 1);
-  totalNumberOfPages.forEach((item) => item.textContent = numberOfPages);
+  totalNumberOfPages.forEach((item) => item.textContent = status.numberOfPages);
   paginationWrappers.forEach((item) => item.classList.remove('hide'));
 
   // Bind prev, next and view all buttons
   document.querySelectorAll('.prev-page-btn').forEach((element) => {
     element.addEventListener('click', async() => {
       console.log('prev');
-      status.viewAll = false;
+      if (status.page >= 2) {
+        status.viewAll = false;
+        status.page = status.page - 1;
+        history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
 
-      // Empty table
-      TableHelper.emptyRows(rowsWrapper);
-      await previousPage(rowsWrapper, status);
+        // Empty table
+        TableHelper.emptyRows(rowsWrapper);
+        await getPage(rowsWrapper, status);
+      }
     })
   });
   document.querySelectorAll('.next-page-btn').forEach((element) => {
     element.addEventListener('click', async() => {
       console.log('next');
+      if (status.page < status.numberOfPages) {
+        status.page = status.page + 1;
+        history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
+        status.viewAll = false;
+
+        // Empty table
+        TableHelper.emptyRows(rowsWrapper);
+        await getPage(rowsWrapper, status);
+      }
+    });
+  });
+  document.querySelectorAll('.first-page-btn').forEach((element) => {
+    element.addEventListener('click', async() => {
+      console.log('first');
+      status.viewAll = false;
+      status.page = 1;
+      history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
+
+      // Empty table
+      TableHelper.emptyRows(rowsWrapper);
+      await getPage(rowsWrapper, status);
+    })
+  });
+  document.querySelectorAll('.last-page-btn').forEach((element) => {
+    element.addEventListener('click', async() => {
+      console.log('last');
+      status.page = status.numberOfPages;
+      history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
       status.viewAll = false;
 
       // Empty table
       TableHelper.emptyRows(rowsWrapper);
-      await nextPage(rowsWrapper, status);
+      await getPage(rowsWrapper, status);
     });
   });
   document.querySelectorAll('.view-all-btn').forEach((element) => {
     element.addEventListener('click', async() => {
       console.log('view all');
       status.viewAll = true;
+      history.replaceState({}, document.title, `/page/all/currency/${status.currency}/`);
 
       // Empty table
       TableHelper.emptyRows(rowsWrapper);
@@ -290,6 +312,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     element.addEventListener('click', async() => {
       console.log('back');
       status.viewAll = false;
+      status.page = 1;
+
+      history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
       paginationWrappers.forEach((item) => item.classList.remove('hide'));
       loadFirstPage(rowsWrapper, status);
     });
@@ -299,17 +324,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     element.addEventListener('change', async(event) => {
       status.currency = event.currentTarget.value;
       if (status.viewAll) {
-        // Reload al pages with updated currency
+        // Reload all pages with updated currency
         loadAllPages(rowsWrapper, status);
       } else {
         // Empty table
         TableHelper.emptyRows(rowsWrapper);
-        status.page = status.page - 1;
-        await nextPage(rowsWrapper, status);
+        history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
+        await getPage(rowsWrapper, status);
       }
     });
   });
 
-  // Get list for page 1 in given currency
-  loadFirstPage(rowsWrapper, status);
+  // Bind jump to
+  document.querySelectorAll('.page-selector').forEach((select) => {
+    for (let i=1; i<=status.numberOfPages; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = i;
+      select.appendChild(option);
+    }
+
+    select.addEventListener('change', async(event) => {
+      TableHelper.emptyRows(rowsWrapper);
+      status.page = event.currentTarget.value;
+      history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
+      await getPage(rowsWrapper, status);
+    });
+  });
+
+  // Check what is the page in the URL, or load the first if any
+  const url = window.location.pathname;
+  const urlParts = url.split('/');
+  const pageInUrl = urlParts[urlParts.findIndex((el) => el === 'page') + 1];
+  const currencyInUrl = urlParts[urlParts.findIndex((el) => el === 'currency') + 1];
+
+  if (pageInUrl && currencyInUrl) {
+    if (pageInUrl === 'all') {
+      status.page = 1;
+      status.viewAll = true;
+    } else {
+      status.page = +pageInUrl;
+      status.viewAll = false;
+    }
+    status.currency = currencyInUrl;
+
+    document.querySelectorAll('.currency-selector').forEach((select) => {
+      select.querySelector(`option[value="${status.currency}"]`).selected = true;
+    });
+
+    if (status.viewAll) {
+      await loadAllPages(rowsWrapper, status);
+    } else {
+      await getPage(rowsWrapper, status);
+    }
+  } else {
+    await loadFirstPage(rowsWrapper, status);
+  }
 });

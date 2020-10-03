@@ -13,17 +13,27 @@
   </header>
   <main>
     <div class="buttons">
-      <select class="currency-selector">
-        <option value="usd" selected>USD</option>
-        <option value="btc">BTC</option>
-      </select>
+      <label>
+        Currency:
+        <select class="currency-selector">
+          <option value="usd" selected>USD</option>
+          <option value="btc">BTC</option>
+        </select>
+      </label>
 
-      <span class="pagination hide">Page <span class="current-page">1</span> of <span class="total-pages">123</span></span>
+      <label class="view-all-hide">
+        Jump to page:
+        <select class="page-selector"></select>
+      </label>
 
-      <button class="btn prev-page-btn hide-btn">← Previous 50</button>
-      <button class="btn next-page-btn">Next 50 →</button>
+      <span class="pagination hide view-all-hide">Page <span class="current-page">1</span> of <span class="total-pages">123</span></span>
+
+      <button class="btn first-page-btn hide-btn view-all-hide">← First</button>
+      <button class="btn prev-page-btn hide-btn view-all-hide">← Previous 50</button>
+      <button class="btn next-page-btn view-all-hide">Next 50 →</button>
+      <button class="btn last-page-btn view-all-hide">Last →</button>
       <button class="btn view-all-btn">View All</button>
-      <button class="btn back-50-btn hide-btn">← Back To Top 50</button>
+      <button class="btn back-50-btn view-all-show">← Back To Top 50</button>
     </div>
     <table id="coins-list-table" class="sortable-table">
       <thead>
@@ -43,17 +53,27 @@
       </tbody>
     </table>
     <div class="buttons">
-      <select class="currency-selector">
-        <option value="usd" selected>USD</option>
-        <option value="btc">BTC</option>
-      </select>
+      <label>
+        Currency:
+        <select class="currency-selector">
+          <option value="usd" selected>USD</option>
+          <option value="btc">BTC</option>
+        </select>
+      </label>
 
-      <span class="pagination hide">Page <span class="current-page">1</span> of <span class="total-pages">123</span></span>
+      <label class="view-all-hide">
+        Jump to page:
+        <select class="page-selector"></select>
+      </label>
 
-      <button class="btn prev-page-btn hide-btn">← Previous 50</button>
-      <button class="btn next-page-btn">Next 50 →</button>
+      <span class="pagination hide view-all-hide">Page <span class="current-page">1</span> of <span class="total-pages">123</span></span>
+
+      <button class="btn first-page-btn hide-btn view-all-hide">← First</button>
+      <button class="btn prev-page-btn hide-btn view-all-hide">← Previous 50</button>
+      <button class="btn next-page-btn view-all-hide">Next 50 →</button>
+      <button class="btn last-page-btn view-all-hide">Last →</button>
       <button class="btn view-all-btn">View All</button>
-      <button class="btn back-50-btn hide-btn">← Back To Top 50</button>
+      <button class="btn back-50-btn view-all-show">← Back To Top 50</button>
     </div>
   </main>
   <footer>
