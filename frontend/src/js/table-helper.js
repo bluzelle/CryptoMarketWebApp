@@ -36,7 +36,8 @@ const sparklineOptions = {
 
 // Formatter for numbers
 const numberFormatter = new Intl.NumberFormat('en-US', {
-  style: 'decimal'
+  style: 'decimal',
+  maximumSignificantDigits: 8
 });
 
 /**
