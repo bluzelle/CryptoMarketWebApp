@@ -213,8 +213,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Init Bluzelle
   try {
     blzClient = await BluzelleHelper.init({
-      mnemonic: process.env.mnemonic,
-      chain_id: process.env.chain_id,
       uuid: process.env.uuid,
       endpoint: process.env.endpoint
     });
