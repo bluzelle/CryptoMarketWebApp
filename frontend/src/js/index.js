@@ -270,9 +270,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-  document.querySelectorAll('.first-page-btn').forEach((element) => {
-    element.addEventListener('click', async() => {
+  document.querySelectorAll('.first-page-btn, #home-link').forEach((element) => {
+    element.addEventListener('click', async(event) => {
       console.log('first');
+      event.preventDefault();
       status.viewAll = false;
       status.page = 1;
       history.replaceState({}, document.title, `/page/${status.page}/currency/${status.currency}/`);
