@@ -68,6 +68,8 @@ select {
 
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #024486;
+  color: #fff;
 }
 
 h1 {
@@ -88,7 +90,7 @@ h1 {
 
 #home-link {
   text-decoration: none;
-  color: #000;
+  color: #fdba4d;
 }
 
 #coins-list-table,
@@ -101,6 +103,7 @@ h1 {
 #coins-list-table {
   th {
     font-weight: bold;
+    color: #fdba4d;
   }
 
   td {
