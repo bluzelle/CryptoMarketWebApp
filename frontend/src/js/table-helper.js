@@ -172,21 +172,21 @@ const fillRow = (row, position, coinInfo, currencySymbol) => {
   row.children[1].innerHTML = `<img src="${coinInfo.image}" alt="${coinInfo.name}" width="16" height="16" class="coin-image"/> ${coinInfo.name}`;
   // Market cap
   if (coinInfo.market_cap || coinInfo.market_cap === 0) {
-    row.children[2].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.market_cap)}`;
+    row.children[2].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.market_cap)}`;
   } else {
     row.children[2].textContent = '?';
   }
 
   // Current price
   if (coinInfo.current_price || coinInfo.current_price === 0) {
-    row.children[3].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.current_price)}`;
+    row.children[3].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.current_price)}`;
   } else {
     row.children[3].textContent = '?';
   }
 
   // Total volume
   if (coinInfo.total_volume || coinInfo.total_volume === 0) {
-    row.children[4].textContent = `${currencySymbol}${numberFormatter.format(coinInfo.total_volume)}`;
+    row.children[4].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.total_volume)}`;
   } else {
     row.children[4].textContent = '?';
   }
