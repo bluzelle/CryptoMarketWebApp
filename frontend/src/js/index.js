@@ -69,7 +69,7 @@ const updateUiControls = () => {
         element.classList.remove('hide-btn');
       });
     } else {
-      document.querySelectorAll('.first-page-btn, .prev-page-btn').forEach((element) => {
+      document.querySelectorAll('.first-page-btn, .prev-page-btn, .next-page-btn').forEach((element) => {
         element.classList.remove('hide-btn');
       });
 
