@@ -2,6 +2,7 @@
 
 // Import external dependencies
 const aws = require('aws-sdk');
+const axios = require('axios');
 const pRetry = require('p-retry');
 const pMap = require('p-map');
 
@@ -16,7 +17,6 @@ module.exports.list = async (event)=> {
 
   const bzConfig = {
     mnemonic: process.env.mnemonic,
-    chain_id: process.env.chain_id,
     uuid: process.env.uuid,
     endpoint: process.env.endpoint
   }
@@ -37,24 +37,34 @@ module.exports.list = async (event)=> {
     // This allows the lambda to be executed without incurring in timeouts
     // As many currencies as needed can be added with this method: USD and BTC are only examples
     let currency = 'USD';
-    console.log(`Starting with currency ${currency}`);
     if ('Lambda Event' === event['detail-type']) {
       // This execution round has been invoked by a previous lambda execution
-      // Get the currenct from the event and proceed
+      // Get the currency from the event and proceed
       currency = event.currency;
-      const marketData = await getMarketData(currency);
-      if (!marketData) {
-        return;
-      }
+    }
+    console.log(`Starting with currency ${currency}`);
 
-      await saveMarketData(marketData, currency);
-    } else {
-      // This execution round has been invoked by AWS, default to currency = USD and proceed
-      const marketData = await getMarketData(currency);
-      if (!marketData) {
-        return;
-      }
-      await saveMarketData(marketData, currency);
+    const marketData = await getMarketData(currency);
+    if (!marketData) {
+      return;
+    }
+
+    await saveMarketData(marketData, currency);
+
+    // Check if all logos are present and download them in case
+    let icons = marketData.map((page) => {
+      return page.map((coinInfo) => ({
+        id: coinInfo.id,
+        image: coinInfo.image
+      }));
+    });
+    icons = icons.reduce((acc, curr) => acc.concat(curr), []);
+    icons = await getAllMissingIcons(icons);
+    if (icons && icons.length) {
+      await saveAllIcons(icons);
+    }
+
+    if ('Lambda Event' !== event['detail-type']) {
       console.log('Update successfully completed, now update BTC currency');
 
       const lambda = new aws.Lambda();
@@ -85,7 +95,7 @@ const getMarketData = async(currency) => {
   const genericCoinList = await coingeckoLib.getCoinListPage();
 
   // Calculate total number of pages needed, based on the amount of coins retrieved for each page
-  const totalNumberOfCoins = genericCoinList.length;
+  const totalNumberOfCoins = 150; //genericCoinList.length;
   const totalNuberOfPages = Math.ceil(totalNumberOfCoins / coingeckoLib.coinsPerPage);
   console.log(`Found ${totalNumberOfCoins} coins, for a total of ${totalNuberOfPages} pages`);
 
@@ -143,13 +153,71 @@ const saveMarketData = async(marketData, currency) => {
   return;
 }
 
+const getAllMissingIcons = async(icons) => {
+  console.log('Start retrieving icons');
+
+  const allKeys = await bluzelleClient.keys();
+  const missingIcons = [];
+  icons.forEach((icon) => {
+    if (!allKeys.includes(`coin-icon:${icon.id}`)) {
+      missingIcons.push(icon);
+    }
+  });
+  console.log('Missing icons', icons);
+
+  if (icons.length) {
+    const mapper = async(iconInfo) => await pRetry(async () => {
+      let image = await axios.get(iconInfo.image, { responseType: 'arraybuffer' });
+      let imageB64 = Buffer.from(image.data).toString('base64');
+      return {
+        id: iconInfo.id,
+        data: imageB64
+      };
+    }, {
+      onFailedAttempt: async (error) => {
+        console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+        console.log(`${error.response.status}: ${error.response.statusText}`);
+      },
+      retries: 5
+    });
+
+    let b64Images = await pMap(icons, mapper, { concurrency : 5});
+    console.log('All icons retrieved!');
+
+    return b64Images;
+  }
+}
+
+const saveAllIcons = async(icons) => {
+  const preparedIicons = icons.map((icon) => ({
+    key: `coin-icon:${icon.id}`,
+    data: icon.data
+  }));
+
+  // Try to batch 10 icons for transaction, to avoid hitting the size limit
+  const batchSize = 10;
+  const batches = Math.ceil(preparedIicons.length / batchSize);
+  console.log(`Need to save ${batches} batches`);
+
+  let batch = 0;
+  while(batch < batches) {
+    const batchStart = batch * batchSize;
+    const batchEnd = batchStart + batchSize;
+    console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
+    await bluzelleLib.saveData(preparedIicons.slice(batchStart, batchEnd));
+    console.log(`Batch #${batch} saved`);
+    batch++;
+  }
+
+  return;
+}
+
 const prepareDataForInsert = (coin) => {
   return {
     id: coin.id,
     symbol: coin.symbol,
     name: coin.name,
     last_updated: coin.last_updated,
-    image: coin.image,
     circulating_supply: coin.circulating_supply,
     total_supply: coin.total_supply,
     market_cap: coin.market_cap,

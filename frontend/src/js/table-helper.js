@@ -170,7 +170,15 @@ const fillRow = (row, position, coinInfo, currencySymbol) => {
   row.children[0].innerHTML = position;
 
   // Image and name
-  row.children[1].innerHTML = `<img src="${coinInfo.image}" alt="${coinInfo.name}" width="16" height="16" class="coin-image"/> ${coinInfo.name}`;
+  row.children[1].setAttribute('data-icon', coinInfo.id);
+
+  if (coinInfo.image) {
+    row.children[1].innerHTML = `<img src="data:image/png;base64, ${coinInfo.image}" alt="${coinInfo.name}" width="16" height="16" class="coin-image"/> ${coinInfo.name}`;
+  } else {
+    row.children[1].innerHTML = `${coinInfo.name}`;
+    row.children[1].setAttribute('data-icon', `icon-${coinInfo.id}`);
+  }
+
   // Market cap
   if (coinInfo.market_cap || coinInfo.market_cap === 0) {
     row.children[2].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.market_cap)}`;
@@ -231,8 +239,17 @@ const fillRow = (row, position, coinInfo, currencySymbol) => {
   });
 }
 
+const addIcon = (id, data) => {
+  const cell = document.querySelector('td[data-icon="icon-' + id + '"]');
+  console.log(id, cell);
+  if (cell) {
+    cell.innerHTML = `<img src="data:image/png;base64, ${data}" width="16" height="16" class="coin-image"/> ${cell.innerHTML}`;
+  }
+}
+
 module.exports = {
   adjustRows,
   emptyRows,
-  fillRow
+  fillRow,
+  addIcon
 }

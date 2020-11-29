@@ -101,6 +101,18 @@ const loadPage = (status) => {
     // Load coin list
     let coinListPage = await BluzelleHelper.read(blzClient, `coin-list:${status.currency}:page:${status.page}`);
     coinListPage = JSON.parse(coinListPage);
+
+    coinListPage.forEach((coin, index) => {
+      const id = coin.id;
+      const icon = sessionStorage.getItem(`icon-${id}`);
+      if (icon) {
+        coinListPage[index].image = icon;
+      } else {
+        // Trigger request to get icon from db
+        getIconFromDb(coin.id); // Don't use await, so it doesn't stop the rendering and will be 100% async
+      }
+    });
+
     // Create an object with index and page info
     coinListPage = coinListPage.map((coin, index) => ({
       coin: coin,
@@ -112,8 +124,16 @@ const loadPage = (status) => {
     }));
 
     status.requestInProgress = null;
+
     resolve(coinListPage);
   });
+}
+
+const getIconFromDb = async(id) => {
+  const iconFromDb = await await BluzelleHelper.read(blzClient, `coin-icon:${id}`);
+  sessionStorage.setItem(`icon-${id}`, iconFromDb);
+
+  TableHelper.addIcon(id, iconFromDb);
 }
 
 /* Methods to load pages */

@@ -8,7 +8,7 @@
 const pRetry = require('p-retry');
 const { bluzelle } = require('bluzelle');
 
-const maxGas = 10000000; // 10.000.000
+const maxGas = 15000000; // 15.000.000
 
 let client;
 
@@ -26,6 +26,17 @@ const init = async (config) => {
     console.error('Error creating Bluzelle client', error);
     throw error;
   }
+}
+
+/**
+ * Insert data to Bluzelle using transaction
+ *
+ * @param {object} data
+ */
+const insertData = async(data) => {
+  return await client.withTransaction(() => Promise.all(
+    data.map((element) => client.create(element.key, element.data, {'max_gas': maxGas, 'gas_price': 10}))
+  ));
 }
 
 /**
@@ -75,6 +86,7 @@ const upsert = async (existingKeys, key, value) => {
 
 module.exports = {
   init,
+  insertData,
   saveData,
   maxGas
 }
