@@ -8,7 +8,7 @@
 const pRetry = require('p-retry');
 const { bluzelle } = require('bluzelle');
 
-const maxGas = 10000000; // 10.000.000
+const maxGas = 20000000; // 10.000.000
 
 let client;
 
@@ -58,11 +58,11 @@ const upsert = async (existingKeys, key, value) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (existingKeys.indexOf(key) > -1) {
-        await client.update(key, value, {'max_gas': maxGas, 'gas_price': 10});
+        await client.update(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
         console.log(`[${key}] Correctly upserted`);
         resolve();
       } else {
-        await client.create(key, value, {'max_gas': maxGas, 'gas_price': 10});
+        await client.create(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
         console.log(`[${key}] Correctly created`);
         resolve();
       }
