@@ -95,7 +95,7 @@ const getMarketData = async(currency) => {
   const genericCoinList = await coingeckoLib.getCoinListPage();
 
   // Calculate total number of pages needed, based on the amount of coins retrieved for each page
-  const totalNumberOfCoins = 150; //genericCoinList.length;
+  const totalNumberOfCoins = genericCoinList.length;
   const totalNuberOfPages = Math.ceil(totalNumberOfCoins / coingeckoLib.coinsPerPage);
   console.log(`Found ${totalNumberOfCoins} coins, for a total of ${totalNuberOfPages} pages`);
 
