@@ -142,7 +142,7 @@ const saveMarketData = async(marketData, currency) => {
   let batch = 0;
   while(batch < batches) {
     const batchStart = batch * batchSize;
-    const batchEnd = batchStart + batchSize;
+    const batchEnd = Math.min(batchStart + batchSize, preparedMarkedData.length);
     console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
     await bluzelleLib.saveData(preparedMarkedData.slice(batchStart, batchEnd));
     console.log(`Batch #${batch} saved`);
@@ -151,12 +151,11 @@ const saveMarketData = async(marketData, currency) => {
 
   // Look for Bluzelle Coin Info
   let bluzelleCoinInfo = preparedMarkedData.find((page) => page.data.find((coin) => coin.id === 'bluzelle'));
-  bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
-  console.log('bluzelleCoinInfo', bluzelleCoinInfo);
-  await bluzelleLib.saveData({
-    key: `coin-details:${currency}:bluzelle`,
-    data: bluzelleCoinInfo
-  });
+  if (bluzelleCoinInfo) {
+    bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
+    console.log('bluzelleCoinInfo', bluzelleCoinInfo);
+    await bluzelleLib.upsert(`coin-details:${currency}:bluzelle`, bluzelleCoinInfo);
+  }
 
   //return await bluzelleLib.saveData(preparedMarkedData);
   return;
