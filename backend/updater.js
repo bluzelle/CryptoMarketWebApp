@@ -149,6 +149,15 @@ const saveMarketData = async(marketData, currency) => {
     batch++;
   }
 
+  // Look for Bluzelle Coin Info
+  let bluzelleCoinInfo = preparedMarkedData.find((page) => page.data.find((coin) => coin.id === 'bluzelle'));
+  bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
+  console.log('bluzelleCoinInfo', bluzelleCoinInfo);
+  await bluzelleLib.saveData({
+    key: `coin-details:${currency}:bluzelle`,
+    data: bluzelleCoinInfo
+  });
+
   //return await bluzelleLib.saveData(preparedMarkedData);
   return;
 }
