@@ -11,7 +11,7 @@
     "start": "webpack-dev-server --config webpack.config.dev.js"
   },
   "dependencies": {
-    "bluzelle": "^2.1.5",
+    "bluzelle": "^3.0.0",
     "chart.js": "^2.9.4",
     "p-all": "^2.1.0",
     "p-cancelable": "^2.0.0",
