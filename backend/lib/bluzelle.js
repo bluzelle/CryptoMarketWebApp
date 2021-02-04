@@ -2,10 +2,8 @@
 
 /**
  * These are helpers methods to use Bluzelle DB
- * It adds an init method, and a most useful upsert method combaining update and create
  */
 
-const pRetry = require('p-retry');
 const { bluzelle } = require('bluzelle');
 
 const maxGas = 20000000; // 10.000.000
@@ -45,48 +43,29 @@ const insertData = async(data) => {
  * @param {object} data
  */
 const saveData = async(data) => {
-  const existingKeys = await client.keys();
   return await client.withTransaction(() => Promise.all(
-    data.map((element) => upsert(existingKeys, element.key, element.data))
+    data.map((element) => upsert(element.key, element.data))
   ));
 }
 
 /**
  * Upsert value into db
  *
- * Create or update are used based on the existence of the key in the db
- * To avoid connection issues, retry is supported with exponential backoff up 5 retries
- *
  * @param {string} key
  * @param {any} value
  */
-const upsert = async (existingKeys, key, value) => {
-  key = key.toLowerCase();
+const upsert = async (key, value) => {
   value = Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : value.toString();
   //console.log(`[${key}] Start upserting with value ${value}`);
   console.log(`[${key}] Start upserting`);
-
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (existingKeys.indexOf(key) > -1) {
-        await client.update(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
-        console.log(`[${key}] Correctly upserted`);
-        resolve();
-      } else {
-        await client.create(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
-        console.log(`[${key}] Correctly created`);
-        resolve();
-      }
-    } catch (error) {
-      console.log(`[${key}] Got error`, error);
-      reject(error);
-    }
-  });
+  await client.upsert(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
+  console.log(`[${key}] Correctly upserted`);
 }
 
 module.exports = {
   init,
   insertData,
   saveData,
+  upsert,
   maxGas
 }
