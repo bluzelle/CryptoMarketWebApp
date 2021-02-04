@@ -103,7 +103,7 @@ const getMarketData = async(currency) => {
   console.log('BNT', bnt);
   bnt = bnt * 1000000; // Convert bnt to ubnt
 
-  if (bnt < bluzelleLib.maxGas * 10 * totalNuberOfPages) {
+  if (bnt < bluzelleLib.maxGas * 0.002 * totalNuberOfPages) {
     console.log('Notice: insufficient funds');
     return;
   }

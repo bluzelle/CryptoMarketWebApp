@@ -35,7 +35,7 @@ const init = async (config) => {
  */
 const insertData = async(data) => {
   return await client.withTransaction(() => Promise.all(
-    data.map((element) => client.create(element.key, element.data, {'max_gas': maxGas, 'gas_price': 10}))
+    data.map((element) => client.create(element.key, element.data, {'max_gas': maxGas, 'gas_price': 0.002}))
   ));
 }
 
