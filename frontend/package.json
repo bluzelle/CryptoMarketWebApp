@@ -13,6 +13,7 @@
   "dependencies": {
     "bluzelle": "^3.0.0",
     "chart.js": "^2.9.4",
+    "localforage": "^1.9.0",
     "p-all": "^2.1.0",
     "p-cancelable": "^2.0.0",
     "p-map": "^3.0.0",

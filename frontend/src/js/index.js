@@ -7,6 +7,7 @@ const BluzelleHelper = require('./bluzelle-helper');
 const TableHelper = require('./table-helper');
 
 const PCancelable = require('p-cancelable');
+const localForage = require('localforage');
 
 let blzClient;
 
@@ -28,6 +29,11 @@ const status = {
   // Request in progress
   requestInProgress: null
 }
+
+const store = localForage.createInstance({
+  name: 'coinzelle',
+  storeName: 'coinzelle_db'
+})
 
 let currentPageElements = document.querySelectorAll('.pagination .current-page');
 
@@ -120,16 +126,17 @@ const loadPage = (status) => {
     let coinListPage = await BluzelleHelper.read(blzClient, `coin-list:${status.currency}:page:${status.page}`);
     coinListPage = JSON.parse(coinListPage);
 
-    coinListPage.forEach((coin, index) => {
+    for (let index = 0; index < coinListPage.length; index++) {
+      const coin = coinListPage[index];
       const id = coin.id;
-      const icon = sessionStorage.getItem(`icon-${id}`);
+      const icon = await store.getItem(`icon-${id}`);
       if (icon) {
         coinListPage[index].image = icon;
       } else {
         // Trigger request to get icon from db
         getIconFromDb(coin.id); // Don't use await, so it doesn't stop the rendering and will be 100% async
       }
-    });
+    }
 
     // Create an object with index and page info
     coinListPage = coinListPage.map((coin, index) => ({
@@ -149,7 +156,7 @@ const loadPage = (status) => {
 
 const getIconFromDb = async(id) => {
   const iconFromDb = await await BluzelleHelper.read(blzClient, `coin-icon:${id}`);
-  sessionStorage.setItem(`icon-${id}`, iconFromDb);
+  await store.setItem(`icon-${id}`, iconFromDb);
 
   TableHelper.addIcon(id, iconFromDb);
 }
@@ -163,7 +170,7 @@ const loadBluzelleCoinInfo = async(rowWrapper, status) => {
     coinInfo = JSON.parse(coinInfo);
     console.log('coinInfo', coinInfo);
     const id = coinInfo.id;
-    const icon = sessionStorage.getItem(`icon-${id}`);
+    const icon = await store.getItem(`icon-${id}`);
     if (icon) {
       coinInfo.image = icon;
     } else {
