@@ -165,15 +165,16 @@ const getAllMissingIcons = async(icons) => {
   console.log('Start retrieving icons');
 
   const allKeys = await bluzelleClient.keys();
+  const iconKeys = allKeys.filter((key) => key.includes('coin-icon:'));
   const missingIcons = [];
   icons.forEach((icon) => {
-    if (!allKeys.includes(`coin-icon:${icon.id}`)) {
+    if (!iconKeys.includes(`coin-icon:${icon.id}`)) {
       missingIcons.push(icon);
     }
   });
-  console.log('Missing icons', icons);
+  console.log('Missing icons', missingIcons);
 
-  if (icons.length) {
+  if (missingIcons.length) {
     const mapper = async(iconInfo) => await pRetry(async () => {
       let image = await axios.get(iconInfo.image, { responseType: 'arraybuffer' });
       let imageB64 = Buffer.from(image.data).toString('base64');
