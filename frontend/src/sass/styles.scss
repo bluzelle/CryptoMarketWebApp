@@ -94,13 +94,20 @@ h1 {
 }
 
 #coins-list-table,
+#coin-bluzelle-table,
 .buttons {
   width: 100%;
   max-width: 1160px;
   margin: 0 auto;
 }
 
-#coins-list-table {
+#coin-bluzelle-table {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+#coins-list-table,
+#coin-bluzelle-table {
   th {
     font-weight: bold;
     color: #fdba4d;
@@ -145,6 +152,31 @@ h1 {
   .col-align-right {
     text-align: right;
   }
+}
+
+.col-position {
+  width: 5%;
+}
+.col-name {
+  width: 15%;
+}
+.col-market {
+  width: 15%;
+}
+.col-price {
+  width: 10%;
+}
+.col-volume {
+  width: 15%;
+}
+.col-supply {
+  width: 15%;
+}
+.col-change {
+  width: 10%;
+}
+.col-graph {
+  width: 15%;
 }
 
 .buttons {

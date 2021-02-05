@@ -55,6 +55,24 @@ const updatePageContent = (rowsWrapper, data, status) => {
 }
 
 /**
+ * Update the Bluzelle coin info area with the new coin info
+ *
+ * @param {object} rowWrapper
+ * @param {object} data
+ * @param {object} status
+ */
+const updateBluzelleCoinContent = (rowWrapper, data, status) => {
+  console.log('updatePage status', status);
+  // Adjust number of rows in table based on response
+  TableHelper.adjustRows(rowWrapper, 1);
+
+  // Fill row with content
+  const row = rowWrapper.querySelector('tr');
+  TableHelper.fillRow(row, '', data.coin, data.currencySymbol);
+}
+
+
+/**
  * Update the UI controls based on status
  */
 const updateUiControls = () => {
@@ -134,6 +152,34 @@ const getIconFromDb = async(id) => {
   sessionStorage.setItem(`icon-${id}`, iconFromDb);
 
   TableHelper.addIcon(id, iconFromDb);
+}
+
+
+const loadBluzelleCoinInfo = async(rowWrapper, status) => {
+  console.log('loadBluzelleCoinInfo');
+  // Load coin info
+  try {
+    let coinInfo = await BluzelleHelper.read(blzClient, `coin-details:${status.currency}:bluzelle`);
+    coinInfo = JSON.parse(coinInfo);
+    console.log('coinInfo', coinInfo);
+    const id = coinInfo.id;
+    const icon = sessionStorage.getItem(`icon-${id}`);
+    if (icon) {
+      coinInfo.image = icon;
+    } else {
+      // Trigger request to get icon from db
+      getIconFromDb(coinInfo.id); // Don't use await, so it doesn't stop the rendering and will be 100% async
+    }
+
+    const bluzelleCoinInfo = {
+      coin: coinInfo,
+      currency: status.currency,
+      currencySymbol: currencySymbol[status.currency]
+    }
+    updateBluzelleCoinContent(rowWrapper, bluzelleCoinInfo, status);
+  } catch(e) {
+    TableHelper.emptyRows(rowWrapper.querySelector('tbody'));
+  }
 }
 
 /* Methods to load pages */
@@ -220,6 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   status.currency = document.querySelector('.currency-selector').value;
 
   // Get DOM elements
+  const bluzelleInfoTable = document.querySelector('#coin-bluzelle-table tbody');
   const coinsTable = document.querySelector('#coins-list-table');
   const rowsWrapper = coinsTable.querySelector('tbody');
   const paginationWrappers = document.querySelectorAll('.pagination');
@@ -342,6 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.currency-selector').forEach((element) => {
     element.addEventListener('change', async(event) => {
       status.currency = event.currentTarget.value;
+      loadBluzelleCoinInfo(bluzelleInfoTable, status);
       if (status.viewAll) {
         // Reload all pages with updated currency
         loadAllPages(rowsWrapper, status);
@@ -386,6 +434,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       status.viewAll = false;
     }
     status.currency = currencyInUrl;
+    loadBluzelleCoinInfo(bluzelleInfoTable, status);
 
     document.querySelectorAll('.currency-selector').forEach((select) => {
       select.querySelector(`option[value="${status.currency}"]`).selected = true;
