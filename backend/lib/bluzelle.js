@@ -56,6 +56,7 @@ const saveData = async(data) => {
  */
 const upsert = async (key, value) => {
   value = Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : value.toString();
+  key = key.toLowerCase();
   //console.log(`[${key}] Start upserting with value ${value}`);
   console.log(`[${key}] Start upserting`);
   await client.upsert(key, value, {'max_gas': maxGas, 'gas_price': 0.002});
