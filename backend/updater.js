@@ -168,7 +168,7 @@ const getAllMissingIcons = async(icons) => {
   const iconKeys = allKeys.filter((key) => key.includes('coin-icon:'));
   const missingIcons = [];
   icons.forEach((icon) => {
-    if (!iconKeys.includes(`coin-icon:${icon.id}`)) {
+    if (!iconKeys.includes(`coin-icon:${icon.id}`) && icon.image.indexOf('http') === 0) {
       missingIcons.push(icon);
     }
   });
@@ -184,13 +184,14 @@ const getAllMissingIcons = async(icons) => {
       };
     }, {
       onFailedAttempt: async (error) => {
+        console.log(error);
         console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
         console.log(`${error.response.status}: ${error.response.statusText}`);
       },
       retries: 5
     });
 
-    let b64Images = await pMap(icons, mapper, { concurrency : 5});
+    let b64Images = await pMap(missingIcons, mapper, { concurrency : 5});
     console.log('All icons retrieved!');
 
     return b64Images;
