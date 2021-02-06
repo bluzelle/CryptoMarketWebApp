@@ -18,7 +18,7 @@ const coinsPerPage = 50;
  * @param {number} page
  */
 const getMarketsPage = async (currency = 'USD', page = 1) => {
-  await delay.range(1500, 4000);
+  await delay.range(2000, 5000);
   console.log(`Requesting page ${page}`);
   const { data } = await axios.get(`${coingeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=${coinsPerPage}&page=${page}&sparkline=true`);
   console.log(`Request for page ${page} completed`);
