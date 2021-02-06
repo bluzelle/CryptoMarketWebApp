@@ -453,6 +453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await getPage(rowsWrapper, status);
     }
   } else {
+    loadBluzelleCoinInfo(bluzelleInfoTable, status);
     await loadFirstPage(rowsWrapper, status);
   }
 });
