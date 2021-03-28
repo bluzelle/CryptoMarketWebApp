@@ -35,9 +35,10 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: "bundle.css"
+      filename: "[name].[contenthash].css"
     }),
     new HtmlWebpackPlugin({
+      title: 'Caching',
       inject: true,
       template: path.resolve(__dirname, 'index.html'),
     }),
@@ -48,8 +49,21 @@ module.exports = {
   entry: ['babel-polyfill', path.resolve(__dirname, 'src/js/index.js')],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].[contenthash].js',
     publicPath: '/'
+  },
+  optimization: {
+    moduleIds: 'hashed',
+    runtimeChunk: 'single',
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
   },
   mode: 'production',
 };
