@@ -8,7 +8,8 @@
   "scripts": {
     "build-dev": "webpack --config webpack.config.dev.js --watch",
     "build-prod": "webpack --config webpack.config.prod.js",
-    "start": "webpack-dev-server --config webpack.config.dev.js"
+    "start": "webpack-dev-server --config webpack.config.dev.js",
+    "start-prod": "webpack-dev-server --config webpack.config.prod.js --watch"
   },
   "dependencies": {
     "bluzelle": "^3.0.0",
