@@ -65,7 +65,7 @@ module.exports.list = async (event)=> {
     }
 
     if ('Lambda Event' !== event['detail-type']) {
-      console.log('Update successfully completed, now update BTC currency');
+      console.log('Update completed, now update BTC currency');
 
       const lambda = new aws.Lambda();
       const invocation = lambda.invoke({
@@ -172,7 +172,7 @@ const getAllMissingIcons = async(icons) => {
       missingIcons.push(icon);
     }
   });
-  console.log('Missing icons', missingIcons);
+  console.log('Number of missing icons', missingIcons.length);
 
   if (missingIcons.length) {
     const mapper = async(iconInfo) => await pRetry(async () => {
@@ -204,8 +204,8 @@ const saveAllIcons = async(icons) => {
     data: icon.data
   }));
 
-  // Try to batch 10 icons for transaction, to avoid hitting the size limit
-  const batchSize = 10;
+  // Try to batch 5 icons for transaction, to avoid hitting the size limit
+  /* const batchSize = 5;
   const batches = Math.ceil(preparedIicons.length / batchSize);
   console.log(`Need to save ${batches} batches`);
 
@@ -214,9 +214,28 @@ const saveAllIcons = async(icons) => {
     const batchStart = batch * batchSize;
     const batchEnd = batchStart + batchSize;
     console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
-    await bluzelleLib.saveData(preparedIicons.slice(batchStart, batchEnd));
-    console.log(`Batch #${batch} saved`);
+
+    // Don't stop execution for an error with images
+    try {
+      await bluzelleLib.saveData(preparedIicons.slice(batchStart, batchEnd));
+      console.log(`Batch #${batch} saved`);
+    } catch (error) {
+      console.log(error);
+      console.log(`Batch #${batch} not saved`);
+    }
+
     batch++;
+  } */
+
+  for (let i=0; i<preparedIicons.length; i++) {
+    // Don't stop execution for an error with images
+    try {
+      await bluzelleLib.upsert(preparedIicons[i].key, preparedIicons[i].data);
+      console.log(`Icon #${preparedIicons[i].key} saved`);
+    } catch (error) {
+      console.log(error);
+      console.log(`Batch #${preparedIicons[i].key} not saved`);
+    }
   }
 
   return;
