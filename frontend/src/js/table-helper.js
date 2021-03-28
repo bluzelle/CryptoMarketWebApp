@@ -183,35 +183,35 @@ const fillRow = (row, position, coinInfo, currencySymbol) => {
   if (coinInfo.market_cap || coinInfo.market_cap === 0) {
     row.children[2].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.market_cap)}`;
   } else {
-    row.children[2].textContent = '?';
+    row.children[2].textContent = 'N/A';
   }
 
   // Current price
   if (coinInfo.current_price || coinInfo.current_price === 0) {
     row.children[3].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.current_price)}`;
   } else {
-    row.children[3].textContent = '?';
+    row.children[3].textContent = 'N/A';
   }
 
   // Total volume
   if (coinInfo.total_volume || coinInfo.total_volume === 0) {
     row.children[4].textContent = `${currencySymbol} ${numberFormatter.format(coinInfo.total_volume)}`;
   } else {
-    row.children[4].textContent = '?';
+    row.children[4].textContent = 'N/A';
   }
 
   // Circulating supply
   if (coinInfo.circulating_supply || coinInfo.circulating_supply === 0) {
     row.children[5].textContent = `${numberFormatter.format(coinInfo.circulating_supply)} ${coinInfo.symbol.toUpperCase()}`;
   } else {
-    row.children[5].textContent = '?';
+    row.children[5].textContent = 'N/A';
   }
 
   // 24h % change
   if (coinInfo.price_change_percentage_24h || coinInfo.price_change_percentage_24h === 0) {
     row.children[6].textContent = `${numberFormatter.format(coinInfo.price_change_percentage_24h.toFixed(2))}%`;
   } else {
-    row.children[6].textContent = '?';
+    row.children[6].textContent = 'N/A';
   }
 
   // Set green or red color to 24h change
