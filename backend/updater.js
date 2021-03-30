@@ -5,6 +5,7 @@ const aws = require('aws-sdk');
 const axios = require('axios');
 const pRetry = require('p-retry');
 const pMap = require('p-map');
+const sharp = require('sharp');
 
 // Import internal dependencies
 const coingeckoLib = require('./lib/coingecko');
@@ -117,7 +118,9 @@ const getMarketData = async(currency) => {
   const mapper = async (setupData) =>  await pRetry(() => coingeckoLib.getMarketsPage(setupData.currency, setupData.page), {
     onFailedAttempt: async (error) => {
       console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
-      console.log(`${error.response.status}: ${error.response.statusText}`);
+      if (error.response) {
+        console.log(`${error.response.status}: ${error.response.statusText}`);
+      }
 		},
     retries: 5
   });
@@ -153,7 +156,6 @@ const saveMarketData = async(marketData, currency) => {
   let bluzelleCoinInfo = preparedMarkedData.find((page) => page.data.find((coin) => coin.id === 'bluzelle'));
   if (bluzelleCoinInfo) {
     bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
-    console.log('bluzelleCoinInfo', bluzelleCoinInfo);
     await bluzelleLib.upsert(`coin-details:${currency}:bluzelle`, bluzelleCoinInfo);
   }
 
@@ -176,17 +178,23 @@ const getAllMissingIcons = async(icons) => {
 
   if (missingIcons.length) {
     const mapper = async(iconInfo) => await pRetry(async () => {
+      console.log(`Downloading icon ${iconInfo.image}`);
       let image = await axios.get(iconInfo.image, { responseType: 'arraybuffer' });
-      let imageB64 = Buffer.from(image.data).toString('base64');
+      let imageB64 = await sharp(Buffer.from(image.data))
+                      .resize(120, 120)
+                      .toBuffer();
+
       return {
         id: iconInfo.id,
-        data: imageB64
+        data: imageB64.toString('base64')
       };
     }, {
       onFailedAttempt: async (error) => {
         console.log(error);
         console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
-        console.log(`${error.response.status}: ${error.response.statusText}`);
+        if (error.response) {
+          console.log(`${error.response.status}: ${error.response.statusText}`);
+        }
       },
       retries: 5
     });
@@ -204,8 +212,8 @@ const saveAllIcons = async(icons) => {
     data: icon.data
   }));
 
-  // Try to batch 5 icons for transaction, to avoid hitting the size limit
-  /* const batchSize = 5;
+  // Try to batch 20 icons for transaction, to avoid hitting the size limit
+  const batchSize = 20;
   const batches = Math.ceil(preparedIicons.length / batchSize);
   console.log(`Need to save ${batches} batches`);
 
@@ -225,9 +233,9 @@ const saveAllIcons = async(icons) => {
     }
 
     batch++;
-  } */
+  }
 
-  for (let i=0; i<preparedIicons.length; i++) {
+  /* for (let i=0; i<preparedIicons.length; i++) {
     // Don't stop execution for an error with images
     try {
       await bluzelleLib.upsert(preparedIicons[i].key, preparedIicons[i].data);
@@ -236,7 +244,7 @@ const saveAllIcons = async(icons) => {
       console.log(error);
       console.log(`Batch #${preparedIicons[i].key} not saved`);
     }
-  }
+  } */
 
   return;
 }
