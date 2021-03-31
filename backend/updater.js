@@ -115,15 +115,7 @@ const getMarketData = async(currency) => {
     currency,
     page: index + 1
   }));
-  const mapper = async (setupData) =>  await pRetry(() => coingeckoLib.getMarketsPage(setupData.currency, setupData.page), {
-    onFailedAttempt: async (error) => {
-      console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
-      if (error.response) {
-        console.log(`${error.response.status}: ${error.response.statusText}`);
-      }
-		},
-    retries: 5
-  });
+  const mapper = async (setupData) =>  await coingeckoLib.getMarketsPage(setupData.currency, setupData.page);
 
   let marketData = await pMap(executions, mapper, { concurrency : 5});
   console.log('All pages retrieved!');

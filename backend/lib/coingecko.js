@@ -6,7 +6,27 @@
  */
 
 const axios = require('axios');
+const axiosRetry = require('axios-retry');
+axiosRetry(axios, {
+  retries: 5,
+  retryDelay: (retryCount, error) => {
+    if (error && error.response && error.response.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      console.log('retryAfter', retryAfter);
+      if (retryAfter) {
+        return retryAfter * 1000;
+      }
+    }
+    return axiosRetry.exponentialDelay(retryCount, error);
+  },
+  retryCondition: (error) => {
+    return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response.status === 429
+  },
+  shouldResetTimeout: true
+});
+
 const delay = require('delay');
+
 
 const coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
 const coinsPerPage = 50;
