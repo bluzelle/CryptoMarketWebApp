@@ -23,7 +23,7 @@ module.exports.list = async (event)=> {
   }
 
   try {
-    bluzelleClient = bluzelleClient || await bluzelleLib.init(bzConfig);
+    bluzelleClient = bluzelleClient || await bluzelleLib.getBlzClient(bzConfig);
   } catch (error) {
     console.error('Error creating Bluzelle client', error);
   }
@@ -124,9 +124,9 @@ const getMarketData = async(currency) => {
 }
 
 const saveMarketData = async(marketData, currency) => {
-  const preparedMarkedData = marketData.map((data, index) => ({
+  const preparedMarkedData =  marketData.map(async(data, index) => ({
     key: `coin-list:${currency}:page:${index + 1}`,
-    data: data.map((coin) => prepareDataForInsert(coin))
+    data: await Promise.all(data.map((coin) => prepareDataForInsert(coin)))
   }));
 
   // Need to batch 3 pages for transaction, to avoid hitting the size limit
@@ -134,21 +134,23 @@ const saveMarketData = async(marketData, currency) => {
   const batches = Math.ceil(marketData.length / batchSize);
   console.log(`Need to save ${batches} batches`);
 
-  let batch = 0;
+  var batch = 0;
   while(batch < batches) {
-    const batchStart = batch * batchSize;
-    const batchEnd = Math.min(batchStart + batchSize, preparedMarkedData.length);
+    var batchStart = batch * batchSize;
+    var batchEnd = Math.min(batchStart + batchSize, preparedMarkedData.length);
     console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
-    await bluzelleLib.saveData(preparedMarkedData.slice(batchStart, batchEnd));
-    console.log(`Batch #${batch} saved`);
+    await Promise.all(preparedMarkedData.slice(batchStart, batchEnd))
+    .then((marketData) => {
+      bluzelleLib.saveData(bluzelleClient, marketData)
+      var bluzelleCoinInfo = marketData.find((page) => page.data.find((coin) => coin.id === 'bluzelle'))
+      if (bluzelleCoinInfo !== undefined) {
+        bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
+        bluzelleLib.upsert(bluzelleClient, `coin-details:${currency}:bluzelle`, bluzelleCoinInfo)
+          .then(() => console.log('Found Bluzelle token info'))
+      }
+    })
+    .then(() => console.log(`Batch #${batch} saved`))
     batch++;
-  }
-
-  // Look for Bluzelle Coin Info
-  let bluzelleCoinInfo = preparedMarkedData.find((page) => page.data.find((coin) => coin.id === 'bluzelle'));
-  if (bluzelleCoinInfo) {
-    bluzelleCoinInfo = bluzelleCoinInfo.data.find((coin) => coin.id === 'bluzelle');
-    await bluzelleLib.upsert(`coin-details:${currency}:bluzelle`, bluzelleCoinInfo);
   }
 
   //return await bluzelleLib.saveData(preparedMarkedData);
@@ -209,20 +211,20 @@ const saveAllIcons = async(icons) => {
   const batches = Math.ceil(preparedIicons.length / batchSize);
   console.log(`Need to save ${batches} batches`);
 
-  let batch = 0;
+  var batch = 0;
   while(batch < batches) {
-    const batchStart = batch * batchSize;
-    const batchEnd = batchStart + batchSize;
+    var batchStart = batch * batchSize;
+    var batchEnd = batchStart + batchSize;
     console.log(`Saving batch #${batch}, from index ${batchStart} to index ${batchEnd}`);
 
     // Don't stop execution for an error with images
-    try {
-      await bluzelleLib.saveData(preparedIicons.slice(batchStart, batchEnd));
-      console.log(`Batch #${batch} saved`);
-    } catch (error) {
+    await Promise.all(preparedMarkedData.slice(batchStart, batchEnd))
+    .then((marketData) => bluzelleLib.saveData(bluzelleClient, marketData))
+    .then(() => console.log(`Batch #${batch} saved`))
+    .catch((error) => {
       console.log(error);
       console.log(`Batch #${batch} not saved`);
-    }
+    })
 
     batch++;
   }

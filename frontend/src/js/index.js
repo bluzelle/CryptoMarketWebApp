@@ -124,6 +124,7 @@ const loadPage = (status) => {
 
     // Load coin list
     let coinListPage = await BluzelleHelper.read(blzClient, `coin-list:${status.currency}:page:${status.page}`);
+    console.clear()
     coinListPage = JSON.parse(coinListPage);
 
     for (let index = 0; index < coinListPage.length; index++) {
@@ -156,6 +157,7 @@ const loadPage = (status) => {
 
 const getIconFromDb = async(id) => {
   const iconFromDb = await await BluzelleHelper.read(blzClient, `coin-icon:${id}`);
+  console.clear()
   await store.setItem(`icon-${id}`, iconFromDb);
 
   TableHelper.addIcon(id, iconFromDb);
@@ -167,6 +169,7 @@ const loadBluzelleCoinInfo = async(rowWrapper, status) => {
   // Load coin info
   try {
     let coinInfo = await BluzelleHelper.read(blzClient, `coin-details:${status.currency}:bluzelle`);
+    console.clear()
     coinInfo = JSON.parse(coinInfo);
     console.log('coinInfo', coinInfo);
     const id = coinInfo.id;

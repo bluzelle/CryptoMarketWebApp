@@ -43,9 +43,11 @@ const read = async (client, key) => {
       // Retry up to 5 times, to avoid network issues, and issues like "5000ms timeout"
       // If the error is a RECORD_NOT_FOUND, stop retrying as this is not a recoverable issue
       try {
+        console.clear()
         response = await client.read(key);
         return response;
       } catch (error) {
+        console.log(error)
         if (error.toString().includes('RECORD_NOT_FOUND')) {
           throw new pRetry.AbortError(error);
         }
