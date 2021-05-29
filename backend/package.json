@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "axios-retry": "^3.1.9",
     "bluzelle": "^3.0.6",
     "delay": "^4.4.0",
