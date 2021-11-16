@@ -18,7 +18,7 @@
     "sharp": "^0.28.0"
   },
   "devDependencies": {
-    "aws-sdk": "^2.543.0",
+    "aws-sdk": "^2.814.0",
     "serverless-dotenv-plugin": "^3.0.0"
   }
 }
