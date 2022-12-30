@@ -14,7 +14,7 @@
     "p-all": "^2.1.0",
     "p-map": "^4.0.0",
     "p-retry": "^4.1.0",
-    "serverless": "^1.50.0",
+    "serverless": "^1.83.3",
     "sharp": "^0.28.0"
   },
   "devDependencies": {
